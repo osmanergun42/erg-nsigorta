@@ -1,0 +1,391 @@
+/* GENEL YAPI */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background-color: #007acc;
+  color: white;
+  padding: 1.5rem;
+  text-align: center;
+  position: relative;
+}
+
+header a {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+/* ANA SAYFA MENÜ */
+.menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2rem;
+}
+
+.menu a {
+  display: block;
+  width: 250px;
+  margin: 10px;
+  padding: 15px;
+  background: white;
+  border: 1px solid #ccc;
+  text-decoration: none;
+  color: #333;
+  text-align: center;
+  font-size: 18px;
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+
+.menu a:hover {
+  background: #e6f7ff;
+}
+
+/* SAYFA İÇERİK */
+main {
+  padding: 2rem;
+  max-width: 900px;
+  margin: auto;
+}
+
+section {
+  background: white;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* FORM */
+form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+form input, form button {
+  padding: 10px;
+  font-size: 16px;
+}
+
+form button {
+  background-color: #007acc;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  grid-column: span 2;
+}
+
+form button:hover {
+  background-color: #005f99;
+}
+
+/* ARAMA */
+#arama {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+/* TABLO */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+table th, table td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+}
+
+table th {
+  background-color: #007acc;
+  color: white;
+}
+
+table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+table button {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+table button:hover {
+  background-color: #c0392b;
+}
+
+/* FOOTER */
+footer {
+  margin-top: 50px;
+  text-align: center;
+  padding: 1rem;
+  background: #f0f0f0;
+}
+#uyariTablosu {
+  border: 2px solid #ff9800;
+  margin-top: 1rem;
+}
+
+#uyariTablosu th {
+  background-color: #ff9800;
+  color: white;
+}
+.grafik-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.grafik-container section {
+  flex: 1 1 45%;
+  max-width: 600px;
+}
+
+canvas {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 300px;
+}
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-icerik {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  margin: 10% auto;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.kapatBtn {
+  float: right;
+  font-size: 24px;
+  cursor: pointer;
+}
+/* Modal arka planı */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Modal içeriği */
+.modal-icerik {
+  background-color: #fff;
+  margin: 8% auto;
+  padding: 30px 20px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  position: relative;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Kapatma butonu */
+.kapatBtn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 22px;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+}
+
+/* Giriş alanları */
+.modal-icerik input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+
+/* Kaydet butonu */
+.modal-icerik button {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bdb;
+  color: #fff;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.2s ease;
+}
+
+.modal-icerik button:hover {
+  background-color: #005fa3;
+}
+
+/* Açılış animasyonu */
+@keyframes fadeIn {
+  from {opacity: 0; transform: scale(0.95);}
+  to {opacity: 1; transform: scale(1);}
+}
+.ts-wrapper.single .ts-control {
+  height: 42px;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+}
+
+.ts-wrapper .ts-dropdown {
+  font-size: 15px;
+  background: #fff;
+  border: 1px solid #ccc;
+  z-index: 999;
+}
+
+.ts-wrapper .ts-control input {
+  font-size: 16px;
+}
+
+.ts-wrapper .ts-control::after {
+  border-color: #333 transparent transparent transparent;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.4);
+}
+
+.modal-icerik {
+  background: #fff;
+  padding: 20px;
+  width: 100%;
+  max-width: 500px;
+  margin: 10% auto;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  position: relative;
+}
+
+.kapatBtn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 20px;
+  cursor: pointer;
+}
+.buton {
+  display: inline-block;
+  padding: 10px 15px;
+  background-color: #2e7d32;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+.buton:hover {
+  background-color: #1b5e20;
+}
+.butonlar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  margin: 30px 0;
+}
+
+.panelBtn {
+  padding: 12px 20px;
+  font-size: 16px;
+  background-color: #f4f4f4;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #222;
+  border: 1px solid #ccc;
+  transition: all 0.2s ease;
+}
+
+.panelBtn:hover {
+  background-color: #e0e0e0;
+  transform: scale(1.02);
+}
+
+.panelBtn.aktif {
+  background-color: #ffcc00;
+  font-weight: bold;
+}
+  .autocomplete-suggestions {
+    position: absolute;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    padding: 8px;
+    margin-top: 5px;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 999;
+    font-family: "Segoe UI", sans-serif;
+  }
+
+  .autocomplete-suggestions div {
+    padding: 10px 14px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    font-size: 15px;
+    border-radius: 6px;
+  }
+
+  .autocomplete-suggestions div:hover {
+    background-color: #007BFF;
+    color: white;
+  }
+
+  .autocomplete-suggestions div:last-child {
+    border-bottom: none;
+  }
+
