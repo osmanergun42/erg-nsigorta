@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Raporlama Paneli</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>📊 Raporlama Paneli</h1>
+    <a href="index.html">← Anasayfa</a>
+  </header>
+
+  <main>
+    <!-- Kimin Müşterisi ile Filtreleme -->
+    <section>
+      <h2>🔍 Kimin Müşterisine Göre Rapor</h2>
+      <input type="text" id="kiminFiltre" placeholder="Kimin müşterisiyle ara...">
+      <button id="excelAktar">📥 Excel'e Aktar</button>
+      <table id="kiminTablosu" style="margin-top: 15px;">
+        <thead>
+          <tr>
+            <th>Müşteri</th>
+            <th>Plaka</th>
+            <th>Tescil No</th>
+            <th>Tür</th>
+            <th>Bitiş</th>
+            <th>Prim</th>
+            <th>Kimin Müşterisi</th>
+            <th>Dış Acente</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- Tarih Aralığıyla Önizleme ve Excel -->
+    <section style="margin-top: 40px;">
+      <h2>📅 Tarih Aralığına Göre Rapor</h2>
+      <label>Başlangıç: <input type="date" id="tarihBaslangic"></label>
+      <label>Bitiş: <input type="date" id="tarihBitis"></label>
+      <button id="onizleBtn">🔍 Önizle</button>
+      <button id="excelTarihAktarBtn" disabled>📥 Excel'e Aktar</button>
+      <table id="tarihTablosu" style="margin-top: 15px;">
+        <thead>
+          <tr>
+            <th>Müşteri</th>
+            <th>Plaka</th>
+            <th>Tescil No</th>
+            <th>Tür</th>
+            <th>Bitiş</th>
+            <th>Prim</th>
+            <th>Kimin Müşterisi</th>
+            <th>Dış Acente</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- Grafikler -->
+  <section>
+    <h2>🎛️ Grafik Filtresi: Kimin Müşterisi Seç</h2>
+    <select id="acenteFiltre">
+      <option value="">Tümü</option>
+    </select>
+  </section> 
+
+  <section style="margin-top: 50px;">
+    <h2>📊 Poliçe Türlerine Göre Dağılım</h2>
+    <canvas id="turGrafik" height="120"></canvas>
+  </section>
+  <section style="margin-top: 50px;">
+    <h2>📅 Aylara Göre Toplam Prim Tutarı</h2>
+    <canvas id="aylikPrimGrafik" height="120"></canvas>
+  </section>
+  <section style="margin-top: 50px;">
+    <h2>💸 Aylara Göre Toplam Komisyon</h2>
+    <canvas id="aylikKomisyonGrafik" height="120"></canvas>
+  </section>
+  <section style="margin-top: 50px;">
+    <h2>📊 Kimin Müşterisi Bazlı Komisyon Dağılımı</h2>
+    <canvas id="kiminKomisyonPie" height="120"></canvas>
+  </section>  
+
+  <section style="margin-top: 50px;">
+    <h2>🖨️ Grafik PDF Aktarımı</h2>
+    <button id="pdfAktarBtn">📄 PDF Olarak Kaydet</button>
+  </section>  
+
+  <!-- Scriptler -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="js/raporlama.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script type="module" src="js/firebase.js"></script>
+  <script type="module" src="js/policeEkle.js"></script>
+  <script type="module" src="js/raporlamaFirebase.js"></script>
+</body>
+</html>

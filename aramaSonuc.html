@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Arama Sonucu</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .autocomplete-suggestions {
+      position: absolute;
+      border: 1px solid #ccc;
+      background: white;
+      max-height: 150px;
+      overflow-y: auto;
+      width: 250px;
+      z-index: 999;
+    }
+    .autocomplete-suggestions div {
+      padding: 5px;
+      cursor: pointer;
+    }
+    .autocomplete-suggestions div:hover {
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🔍 Arama Sonucu</h1>
+    <a href="index.html">← Anasayfa</a>
+  </header>
+
+  <main>
+    <h2>Sonuçlar:</h2>
+    <label style="position: relative;">
+      🔍 Arama Yap:
+      <input type="text" id="canliAramaInput" placeholder="Müşteri, Tür, Plaka veya Tescil No" autocomplete="off" />
+      <div class="autocomplete-suggestions" id="suggestionBox"></div>
+    </label>
+    <table id="sonucTablo">
+      <thead>
+        <tr>
+          <th>Müşteri</th>
+          <th>Plaka</th>
+          <th>Tescil No</th>
+          <th>Tür</th>
+          <th>Bitiş Tarihi</th>
+          <th>Prim</th>
+          <th>Kimin Müşterisi</th>
+          <th>Dış Acente</th>
+          <th>İşlem</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p id="mesaj"></p>
+  </main>
+
+  <!-- Modal -->
+  <div id="duzenleModal" class="modal">
+    <div class="modal-icerik">
+      <span class="kapatBtn" id="kapatModal">&times;</span>
+      <h2>📝 Poliçe Bilgilerini Güncelle</h2>
+      <form id="duzenleForm">
+        <input type="text" id="duzenlePoliceTuru" placeholder="Poliçe Türü">
+        <input type="date" id="duzenleBaslangic">
+        <input type="date" id="duzenleBitis">
+        <input type="number" id="duzenlePrim" placeholder="Prim Tutarı (₺)">
+        <input type="text" id="duzenleKimin" placeholder="Kimin Müşterisi?">
+        <input type="number" id="duzenleKiminKomisyon" placeholder="Kimin Komisyon Oranı (%)">
+        <input type="text" id="duzenleDis" placeholder="Dış Acente">
+        <input type="number" id="duzenleDisKomisyon" placeholder="Dış Komisyon Oranı (%)">
+        <button type="submit">Kaydet</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { db } from "./js/firebase.js";
+    import {
+      collection,
+      getDocs,
+      deleteDoc,
+      doc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const aramaInput = document.getElementById("canliAramaInput");
+    const suggestionBox = document.getElementById("suggestionBox");
+    const tablo = document.querySelector("#sonucTablo tbody");
+    const mesaj = document.getElementById("mesaj");
+
+    let tumPoliceler = [];
+    let tumMusteriler = [];
+    let guncellenecekID = null;
+
+    async function veriYukle() {
+      const snap1 = await getDocs(collection(db, "policeler"));
+      tumPoliceler = snap1.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      const snap2 = await getDocs(collection(db, "musteriler"));
+      tumMusteriler = snap2.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      const ilkKelime = localStorage.getItem("aramaKelimesi")?.toLocaleLowerCase("tr-TR");
+      aramaInput.value = ilkKelime || "";
+      filtrele(ilkKelime);
+    }
+
+    function filtrele(kelime = "") {
+      const filtre = kelime?.toLocaleLowerCase("tr-TR").trim();
+      tablo.innerHTML = "";
+      mesaj.textContent = "";
+
+      const poliEslesenler = tumPoliceler.filter(p =>
+        !filtre ||
+        p.musteri?.toLocaleLowerCase("tr-TR").includes(filtre) ||
+        p.tur?.toLocaleLowerCase("tr-TR").includes(filtre) ||
+        p.plaka?.toLocaleLowerCase("tr-TR").includes(filtre) ||
+        p.tescilNo?.toLocaleLowerCase("tr-TR").includes(filtre)
+      );
+
+      const musteriEslesenler = tumMusteriler.filter(m =>
+        m.adSoyad?.toLocaleLowerCase("tr-TR").includes(filtre)
+      );
+
+      if (poliEslesenler.length === 0 && musteriEslesenler.length === 0) {
+        mesaj.textContent = "Sonuç bulunamadı.";
+        return;
+      }
+
+      // Poliçeli kayıtları yaz
+      poliEslesenler.sort((a, b) => new Date(a.bitis) - new Date(b.bitis)).forEach(p => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${p.musteri || "-"}</td>
+          <td>${p.plaka || "-"}</td>
+          <td>${p.tescilNo || "-"}</td>
+          <td>${p.tur || "-"}</td>
+          <td>${p.bitis || "-"}</td>
+          <td>${p.prim || 0} ₺</td>
+          <td>${p.kimin || "-"}</td>
+          <td>${p.dis || "-"}</td>
+          <td>
+            <button onclick="duzenlePolice('${p.id}')">✏️</button>
+            <button onclick="silPolice('${p.id}')">❌</button>
+          </td>`;
+        tablo.appendChild(tr);
+      });
+
+      // Poliçesi olmayan müşteriler
+      musteriEslesenler.forEach(m => {
+        const zatenVar = poliEslesenler.some(p => p.musteri === m.adSoyad);
+        if (!zatenVar) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${m.adSoyad}</td>
+            <td colspan="8">📌 Bu müşteri için kayıtlı poliçe bulunmamaktadır.</td>`;
+          tablo.appendChild(tr);
+        }
+      });
+    }
+
+    function gosterOneriler(yazi) {
+      suggestionBox.innerHTML = "";
+      if (!yazi) return;
+
+      const filtre = yazi.toLocaleLowerCase("tr-TR");
+      const adaylar = new Set();
+
+      [...tumPoliceler, ...tumMusteriler].forEach(p => {
+        const alanlar = [p.musteri, p.plaka, p.tescilNo, p.tur, p.adSoyad];
+        alanlar.forEach(f => {
+          if (f?.toLocaleLowerCase("tr-TR").includes(filtre)) {
+            adaylar.add(f);
+          }
+        });
+      });
+
+      [...adaylar].slice(0, 10).forEach(metin => {
+        const div = document.createElement("div");
+        div.textContent = metin;
+        div.onclick = () => {
+          aramaInput.value = metin;
+          suggestionBox.innerHTML = "";
+          filtrele(metin);
+        };
+        suggestionBox.appendChild(div);
+      });
+    }
+
+    aramaInput.addEventListener("input", e => {
+      const value = e.target.value;
+      gosterOneriler(value);
+      filtrele(value);
+    });
+
+    window.silPolice = async (id) => {
+      if (confirm("Bu poliçeyi silmek istiyor musunuz?")) {
+        await deleteDoc(doc(db, "policeler", id));
+        alert("✅ Poliçe silindi!");
+        veriYukle();
+      }
+    };
+
+    window.duzenlePolice = function (id) {
+      const p = tumPoliceler.find(p => p.id === id);
+      if (!p) return;
+      guncellenecekID = id;
+
+      document.getElementById("duzenlePoliceTuru").value = p.tur || "";
+      document.getElementById("duzenleBaslangic").value = p.baslangic || "";
+      document.getElementById("duzenleBitis").value = p.bitis || "";
+      document.getElementById("duzenlePrim").value = p.prim || 0;
+      document.getElementById("duzenleKimin").value = p.kimin || "";
+      document.getElementById("duzenleKiminKomisyon").value = p.kiminKomisyon || 0;
+      document.getElementById("duzenleDis").value = p.dis || "";
+      document.getElementById("duzenleDisKomisyon").value = p.disKomisyon || 0;
+
+      document.getElementById("duzenleModal").style.display = "block";
+    };
+
+    document.getElementById("duzenleForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const ref = doc(db, "policeler", guncellenecekID);
+      await updateDoc(ref, {
+        tur: document.getElementById("duzenlePoliceTuru").value,
+        baslangic: document.getElementById("duzenleBaslangic").value,
+        bitis: document.getElementById("duzenleBitis").value,
+        prim: Number(document.getElementById("duzenlePrim").value),
+        kimin: document.getElementById("duzenleKimin").value,
+        kiminKomisyon: Number(document.getElementById("duzenleKiminKomisyon").value),
+        dis: document.getElementById("duzenleDis").value,
+        disKomisyon: Number(document.getElementById("duzenleDisKomisyon").value)
+      });
+
+      alert("✅ Poliçe güncellendi!");
+      document.getElementById("duzenleModal").style.display = "none";
+      veriYukle();
+    });
+
+    document.getElementById("kapatModal").onclick = () => {
+      document.getElementById("duzenleModal").style.display = "none";
+    };
+    window.onclick = (e) => {
+      if (e.target === document.getElementById("duzenleModal")) {
+        document.getElementById("duzenleModal").style.display = "none";
+      }
+    };
+
+    veriYukle();
+  </script>
+</body>
+</html>

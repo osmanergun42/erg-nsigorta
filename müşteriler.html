@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Müşteri Yönetimi</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>👤 Müşteri Yönetimi</h1>
+    <a href="index.html">← Anasayfa</a>
+  </header>
+
+  <main>
+    <section>
+      <h2>Yeni Müşteri Ekle</h2>
+      <form id="musteriForm">
+        <input type="text" id="adSoyad" placeholder="Ad Soyad" required>
+        <input type="tel" id="telefon" placeholder="Telefon">
+        <input type="email" id="email" placeholder="E-posta">
+        <input type="text" id="tcKimlik" placeholder="TC Kimlik No">
+        <button type="submit">Ekle</button>
+      </form>      
+    </section>
+
+    <section>
+      <h2>👥 Müşteri Listesi</h2>
+      <table id="musteriTablo">
+        <thead>
+          <tr>
+            <th>Ad Soyad</th>
+            <th>Telefon</th>
+            <th>Email</th>
+            <th>TC</th>
+            <th>İşlem</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <br>
+      <button id="jsonExport">📁 JSON Aktar</button>
+      <button id="excelExport">📊 Excel Aktar</button>
+    </section>
+  </main>
+
+  <!-- 🔧 Müşteri Düzenleme Modalı -->
+  <div id="duzenleModal" class="modal">
+    <div class="modal-icerik">
+      <span class="kapatBtn" id="kapatModal">&times;</span>
+      <h2>📝 Müşteri Bilgilerini Güncelle</h2>
+      <form id="duzenleForm">
+        <input type="text" id="duzenleAdSoyad" placeholder="Ad Soyad">
+        <input type="text" id="duzenleTelefon" placeholder="Telefon">
+        <input type="email" id="duzenleEmail" placeholder="Email">
+        <input type="text" id="duzenleTC" placeholder="TC Kimlik No">
+        <button type="submit">Kaydet</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- JS dosyaları -->
+  <script src="js/müşteriler.js"></script>
+  <script type="module" src="js/firebase.js"></script>
+  <script type="module" src="js/musteriEkle.js"></script>
+  <script type="module" src="js/policeEkle.js"></script>
+  <script type="module" src="js/raporlamaFirebase.js"></script>
+  <script type="module" src="js/musterilerListe.js"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/xlsx/xlsx.mjs"></script>
+
+</body>
+</html>

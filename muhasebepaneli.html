@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>💰 Muhasebe Paneli</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>💰 Muhasebe Paneli</h1>
+    <a href="index.html">← Anasayfa</a>
+  </header>
+
+  <main>
+    <section>
+      <h2>🏢 Şirket Bazlı Komisyon Raporu</h2>
+      <label>Şirket Seçin:
+        <select id="sirketSec">
+          <option value="">Tümü</option>
+        </select>
+      </label>
+    </section>
+
+    <section style="margin-top: 20px;">
+      <h3>💰 Şirkete Ödenecek / Alınacak Toplam Komisyon</h3>
+      <p id="komisyonSonuc">Bir şirket seçin...</p>
+    </section>
+
+    <section style="margin-top: 40px;">
+      <h3>📈 Aylara Göre Komisyon Dağılımı</h3>
+      <canvas id="komisyonGrafik" height="120"></canvas>
+    </section>
+
+    <section style="margin-top: 40px;">
+      <button id="excelAktar">📅 Excel'e Aktar</button>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script type="module" src="js/firebase.js"></script>
+  <script type="module" src="js/muhasebepaneli.js"></script>
+</body>
+</html>
