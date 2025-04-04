@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <title>Müşteri Yönetimi</title>
   <link rel="stylesheet" href="style.css">
+
+  <!-- Select2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 </head>
 <body>
   <header>
@@ -25,6 +28,16 @@
 
     <section>
       <h2>👥 Müşteri Listesi</h2>
+
+      <!-- Modern Arama Çubuğu -->
+      <div class="arama-container">
+        <input type="text" id="arama" placeholder="Müşteri, telefon, e-posta, adres...">
+      </div>
+
+      <!-- 🔍 Select2 Dropdown -->
+      <label for="musteriSelect">Müşteri Ara:</label>
+      <select id="musteriSelect" style="width: 100%"></select>
+
       <table id="musteriTablo">
         <thead>
           <tr>
@@ -59,6 +72,11 @@
     </div>
   </div>
 
+  <!-- JS kütüphaneleri -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
   <!-- JS dosyaları -->
   <script src="müşteriler.js"></script>
   <script type="module" src="firebase.js"></script>
@@ -66,7 +84,5 @@
   <script type="module" src="policeEkle.js"></script>
   <script type="module" src="raporlamaFirebase.js"></script>
   <script type="module" src="musterilerListe.js"></script>
-  <script type="module" src="https://cdn.jsdelivr.net/npm/xlsx/xlsx.mjs"></script>
-
 </body>
 </html>
