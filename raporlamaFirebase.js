@@ -12,7 +12,10 @@ async function verileriGetir() {
   const querySnapshot = await getDocs(collection(db, "policeler"));
   tumPoliceler = [];
   querySnapshot.forEach(doc => {
-    tumPoliceler.push(doc.data());
+    const veri = doc.data();
+    if (!veri.iptalDurumu) { // sadece aktif poliçeleri al
+      tumPoliceler.push(veri);
+    }
   });
 
   grafikleriCiz();
@@ -43,7 +46,7 @@ function grafikleriCiz(filtre = "") {
     ? tumPoliceler.filter(p => p.kimin.toLowerCase() === filtre.toLowerCase())
     : tumPoliceler;
 
-  // Poliçe Türü Dağılımı
+  // === Poliçe Türü Dağılımı ===
   const turler = {};
   veriler.forEach(p => {
     turler[p.tur] = (turler[p.tur] || 0) + 1;
@@ -55,12 +58,13 @@ function grafikleriCiz(filtre = "") {
       labels: Object.keys(turler),
       datasets: [{
         label: "Poliçe Sayısı",
-        data: Object.values(turler)
+        data: Object.values(turler),
+        backgroundColor: "#4BC0C0"
       }]
     }
   });
 
-  // Aylık Prim
+  // === Aylık Prim ===
   const aylikPrim = {};
   veriler.forEach(p => {
     const ay = new Date(p.bitis).toISOString().slice(0, 7);
@@ -73,18 +77,23 @@ function grafikleriCiz(filtre = "") {
       labels: Object.keys(aylikPrim).sort(),
       datasets: [{
         label: "Toplam Prim (₺)",
-        data: Object.values(aylikPrim)
+        data: Object.values(aylikPrim),
+        borderColor: "#36A2EB",
+        backgroundColor: "rgba(54,162,235,0.1)",
+        tension: 0.4,
+        fill: true
       }]
     }
   });
 
-  // Aylık Komisyon (dış acente oranına göre)
+  // === Aylık Toplam Komisyon ===
   const aylikKomisyon = {};
   veriler.forEach(p => {
     const ay = new Date(p.bitis).toISOString().slice(0, 7);
-    const komisyon = (Number(p.prim || 0) * Number(p.disKomisyon || 0)) / 100;
+    const komisyon = (Number(p.prim || 0) * ((Number(p.disKomisyon) || 0) + (Number(p.kiminKomisyon) || 0))) / 100;
     aylikKomisyon[ay] = (aylikKomisyon[ay] || 0) + komisyon;
   });
+
   if (aylikKomisyonChart) aylikKomisyonChart.destroy();
   aylikKomisyonChart = new Chart(document.getElementById("aylikKomisyonGrafik"), {
     type: "line",
@@ -92,18 +101,23 @@ function grafikleriCiz(filtre = "") {
       labels: Object.keys(aylikKomisyon).sort(),
       datasets: [{
         label: "Toplam Komisyon (₺)",
-        data: Object.values(aylikKomisyon)
+        data: Object.values(aylikKomisyon),
+        borderColor: "#FF6384",
+        backgroundColor: "rgba(255,99,132,0.1)",
+        tension: 0.4,
+        fill: true
       }]
     }
   });
 
-  // Kimin Müşterisi bazlı komisyon pastası
+  // === Kimin Müşterisi Bazlı Komisyon Pastası ===
   const komisyonlar = {};
   veriler.forEach(p => {
     const kimin = p.kimin;
-    const kom = (Number(p.prim || 0) * Number(p.disKomisyon || 0)) / 100;
+    const kom = (Number(p.prim || 0) * ((Number(p.kiminKomisyon) || 0))) / 100;
     komisyonlar[kimin] = (komisyonlar[kimin] || 0) + kom;
   });
+
   if (kiminPieChart) kiminPieChart.destroy();
   kiminPieChart = new Chart(document.getElementById("kiminKomisyonPie"), {
     type: "pie",
@@ -111,7 +125,7 @@ function grafikleriCiz(filtre = "") {
       labels: Object.keys(komisyonlar),
       datasets: [{
         data: Object.values(komisyonlar),
-        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
       }]
     }
   });
