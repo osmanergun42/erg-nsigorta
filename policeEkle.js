@@ -44,6 +44,8 @@ document.getElementById("policeForm").addEventListener("submit", async (e) => {
     musteri: document.getElementById("musteriSec").value,
     plaka: document.getElementById("plaka").value,
     tescilNo: document.getElementById("tescilNo").value,
+    policeNo: document.getElementById("policeNo").value,       // ✅ Poliçe No eklendi
+    sirket: document.getElementById("sirket").value,           // ✅ Şirket eklendi
     tur: document.getElementById("policeTuru").value,
     baslangic: document.getElementById("baslangicTarihi").value,
     bitis: document.getElementById("bitisTarihi").value,
