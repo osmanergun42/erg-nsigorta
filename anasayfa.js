@@ -26,32 +26,37 @@ window.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // 📆 7 gün içinde bitecek poliçeler
-  const bugun = new Date();
-  tablo.innerHTML = "";
-  const yaklasanlar = tumPoliceler.filter(p => {
-    const bitis = new Date(p.bitis);
-    const fark = Math.ceil((bitis - bugun) / (1000 * 60 * 60 * 24));
-    return fark <= 7 && fark >= 0;
-  });
+// 📆 7 gün içinde bitecek poliçeler
+const bugun = new Date();
+tablo.innerHTML = "";
 
-  if (yaklasanlar.length > 0) {
-    yaklasanlar.forEach(p => {
-      const farkGun = Math.ceil((new Date(p.bitis) - bugun) / (1000 * 60 * 60 * 24));
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${p.musteri}</td>
-        <td>${p.tur}</td>
-        <td>${p.bitis}</td>
-        <td>${farkGun} gün</td>
-      `;
-      tablo.appendChild(tr);
-    });
-  } else {
+const yaklasanlar = tumPoliceler.filter(p => {
+  const bitis = new Date(p.bitis);
+  const fark = Math.ceil((bitis - bugun) / (1000 * 60 * 60 * 24));
+  return fark <= 7 && fark >= 0;
+});
+
+if (yaklasanlar.length > 0) {
+  yaklasanlar.forEach(p => {
+    const farkGun = Math.ceil((new Date(p.bitis) - bugun) / (1000 * 60 * 60 * 24));
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="4">Yaklaşan poliçe bulunmamaktadır.</td>`;
+    tr.innerHTML = `
+      <td>${p.musteri || "-"}</td>
+      <td>${p.plaka || "-"}</td>
+      <td>${p.tescilNo || "-"}</td>
+      <td>${p.tc || "-"}</td>
+      <td>${p.tur || "-"}</td>
+      <td>${p.bitis}</td>
+      <td>${farkGun} gün</td>
+    `;
     tablo.appendChild(tr);
-  }
+  });
+} else {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `<td colspan="7">Yaklaşan poliçe bulunmamaktadır.</td>`;
+  tablo.appendChild(tr);
+}
+
 
   // 🔍 Canlı arama önerileri (sadece müşteri adı göster)
 aramaInput.addEventListener("input", () => {
