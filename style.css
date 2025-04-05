@@ -109,7 +109,7 @@ table {
 
 table th, table td {
   border: 1px solid #ddd;
-  padding: 12px;
+  padding: 10px;
   text-align: left;
 }
 
@@ -424,5 +424,9 @@ th, td {
 table {
   display: block;
   overflow-x: auto;
+}
+table td:last-child, table th:last-child {
+  text-align: center;
+  white-space: nowrap;
 }
 
