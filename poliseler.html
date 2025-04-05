@@ -58,23 +58,28 @@
             <th>Prim</th>
             <th>Kimin Müşterisi</th>
             <th>Dış Acente</th>
-            <th>Şirket</th> <!-- ✅ Yeni Sütun -->
-            <th>Poliçe No</th> <!-- 🆕 -->
-            <th>İşlem</th>            
+            <th>Şirket</th>
+            <th>Poliçe No</th>
+            <th>İşlem</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
 
+      <!-- ⏩ Sayfalama Butonları -->
+      <div id="sayfalama" style="margin-top: 20px; text-align: center;"></div>
+
       <br>
 
-      <!-- 📤 Excel/JSON dışa aktarım için filtre -->
-      <label>Başlangıç Tarihi (filtre):</label>
-      <input type="date" id="filtreBaslangic">
-      <label>Bitiş Tarihi (filtre):</label>
-      <input type="date" id="filtreBitis">
-      <button id="jsonExport">📁 JSON Aktar</button>
-      <button id="excelExport">📊 Excel Aktar</button>
+      <!-- 📤 Excel/JSON dışa aktarım -->
+      <div style="text-align: center; margin-top: 10px;">
+        <label>Başlangıç Tarihi (filtre):</label>
+        <input type="date" id="filtreBaslangic">
+        <label>Bitiş Tarihi (filtre):</label>
+        <input type="date" id="filtreBitis">
+        <button id="jsonExport">📁 JSON Aktar</button>
+        <button id="excelExport">📊 Excel Aktar</button>
+      </div>
     </section>
 
     <!-- 🔧 Poliçe Düzenleme Modalı -->
@@ -101,6 +106,7 @@
     </div>
   </main>
 
+  <!-- JS dosyaları -->
   <script src="poliseler.js"></script>
   <script type="module" src="firebase.js"></script>
   <script type="module" src="policeEkle.js"></script>
