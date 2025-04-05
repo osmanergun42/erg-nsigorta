@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Poliçe Takip Sistemi</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    /* 🔍 Canlı Arama Önerileri Stil */
+    #aramaOnerileri {
+      list-style: none;
+      padding: 0;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      max-height: 220px;
+      overflow-y: auto;
+      position: absolute;
+      width: 250px;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      z-index: 999;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    #aramaOnerileri li {
+      padding: 10px 14px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      font-size: 15px;
+      border-radius: 6px;
+    }
+
+    #aramaOnerileri li:hover {
+      background-color: #007bff;
+      color: white;
+    }
+
+    #aramaOnerileri li:last-child {
+      border-bottom: none;
+    }
+
+    /* Arama kutusu altına pozisyonlama */
+    section input#anaAramaInput {
+      position: relative;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Poliçe Takip Paneli</h1>
+  </header>
+
+  <main>
+    <div class="butonlar">
+      <a href="müşteriler.html" class="panelBtn" target="_blank">👤 Müşteri Yönetimi</a>
+      <a href="poliseler.html" class="panelBtn" target="_blank">📄 Poliçe Takibi</a>
+      <a href="muhasebe.html" class="panelBtn">📊 Muhasebe ve Raporlar</a>
+      <a href="raporlama.html" class="panelBtn">📈 Raporlama Paneli</a>
+      <a href="muhasebepaneli.html" class="panelBtn aktif">💰 Muhasebe Paneli</a>
+    </div>
+    
+    
+    <section>
+      <h2>🔍 Poliçe Ara</h2>
+      <div style="position: relative; display: inline-block;">
+        <input type="text" id="anaAramaInput" placeholder="Plaka veya Müşteri Adı girin...">
+        <ul id="aramaOnerileri" class="oneriler"></ul>
+      </div>
+      <button id="anaAramaBtn">Ara</button>
+    </section>
+    
+    <section>
+      <h2>🕒 Yaklaşan Poliçeler (7 gün içinde)</h2>
+      <table id="uyariTablosu">
+        <thead>
+          <tr>
+            <th>Müşteri</th>
+            <th>Plaka</th>
+            <th>Tescil No</th>
+            <th>TC Kimlik No</th>
+            <th>Poliçe Türü</th>
+            <th>Bitiş Tarihi</th>
+            <th>Kalan Gün</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      
+    </section>
+
+    <section>
+      <h2>📅 Tarih Aralığına Göre Poliçeleri İndir</h2>
+      <label>Başlangıç Tarihi: <input type="date" id="baslangicTarih"></label>
+      <label>Bitiş Tarihi: <input type="date" id="bitisTarih"></label>
+      <button id="tarihliIndir">📥 Bu Aralıktaki Poliçeleri İndir</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Ergün Sigorta</p>
+  </footer>
+
+  <!-- JavaScript dosyaları -->
+  <script src="anasayfa.js" type="module"></script>
+  <script type="module" src="firebase.js"></script>
+  <script type="module" src="policeEkle.js"></script>
+  <script type="module" src="raporlamaFirebase.js"></script>
+</body>
+</html>

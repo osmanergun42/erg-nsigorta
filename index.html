@@ -2,111 +2,207 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Poliçe Takip Sistemi</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="icon" type="image/png" href="favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giriş Yap</title>
+  <link rel="stylesheet" href="sifre.css">
   <style>
-    /* 🔍 Canlı Arama Önerileri Stil */
-    #aramaOnerileri {
-      list-style: none;
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
       padding: 0;
-      margin-top: 4px;
-      border: 1px solid #ccc;
+      background-color: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* Logo */
+    .logo-container {
+      margin-top: 30px;
+    }
+
+    .logo-container img {
+      max-width: 300px;
+      height: auto;
+      display: block;
+    }
+
+    /* Giriş Kutusu */
+    .login-container {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 30px;
       border-radius: 10px;
-      max-height: 220px;
-      overflow-y: auto;
-      position: absolute;
-      width: 250px;
-      background: #fff;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      z-index: 999;
-      font-family: 'Segoe UI', sans-serif;
+      max-width: 400px;
+      width: 90%;
+      margin-top: 25px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
+      text-align: center;
     }
 
-    #aramaOnerileri li {
-      padding: 10px 14px;
-      border-bottom: 1px solid #eee;
-      cursor: pointer;
-      transition: all 0.2s ease-in-out;
-      font-size: 15px;
+    .login-container h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .login-container label {
+      display: block;
+      text-align: left;
+      margin: 10px 0 5px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .login-container input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
       border-radius: 6px;
+      margin-bottom: 15px;
+      font-size: 15px;
     }
 
-    #aramaOnerileri li:hover {
-      background-color: #007bff;
+    .login-container button {
+      width: 100%;
+      padding: 12px;
+      background-color: #4CAF50;
       color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
     }
 
-    #aramaOnerileri li:last-child {
-      border-bottom: none;
+    .login-container button:hover {
+      background-color: #388e3c;
     }
 
-    /* Arama kutusu altına pozisyonlama */
-    section input#anaAramaInput {
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 350px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      text-align: center;
       position: relative;
-      z-index: 1000;
+    }
+
+    .close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #999;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: #333;
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background-color: #388e3c;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Poliçe Takip Paneli</h1>
-  </header>
 
-  <main>
-    <div class="butonlar">
-      <a href="müşteriler.html" class="panelBtn" target="_blank">👤 Müşteri Yönetimi</a>
-      <a href="poliseler.html" class="panelBtn" target="_blank">📄 Poliçe Takibi</a>
-      <a href="muhasebe.html" class="panelBtn">📊 Muhasebe ve Raporlar</a>
-      <a href="raporlama.html" class="panelBtn">📈 Raporlama Paneli</a>
-      <a href="muhasebepaneli.html" class="panelBtn aktif">💰 Muhasebe Paneli</a>
+  <!-- Logo -->
+  <div class="logo-container">
+    <img src="giris.png" alt="Ergün Sigorta Logo">
+  </div>
+
+  <!-- Giriş Formu -->
+  <div class="login-container">
+    <h1>Giriş Yap</h1>
+    <form id="login-form">
+      <label for="username">Kullanıcı Adı:</label>
+      <input type="text" id="username" name="username" autocomplete="off" required>
+
+      <label for="password">Şifre:</label>
+      <input type="password" id="password" name="password" autocomplete="off" required>
+
+      <button type="submit">Giriş Yap</button>
+    </form>
+  </div>
+
+  <!-- Modal -->
+  <div id="successModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeModal">&times;</span>
+      <p>✅ Giriş başarılı!</p>
+      <button id="proceedButton" class="btn">Devam Et</button>
     </div>
-    
-    
-    <section>
-      <h2>🔍 Poliçe Ara</h2>
-      <div style="position: relative; display: inline-block;">
-        <input type="text" id="anaAramaInput" placeholder="Plaka veya Müşteri Adı girin...">
-        <ul id="aramaOnerileri" class="oneriler"></ul>
-      </div>
-      <button id="anaAramaBtn">Ara</button>
-    </section>
-    
-    <section>
-      <h2>🕒 Yaklaşan Poliçeler (7 gün içinde)</h2>
-      <table id="uyariTablosu">
-        <thead>
-          <tr>
-            <th>Müşteri</th>
-            <th>Plaka</th>
-            <th>Tescil No</th>
-            <th>TC Kimlik No</th>
-            <th>Poliçe Türü</th>
-            <th>Bitiş Tarihi</th>
-            <th>Kalan Gün</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      
-    </section>
+  </div>
 
-    <section>
-      <h2>📅 Tarih Aralığına Göre Poliçeleri İndir</h2>
-      <label>Başlangıç Tarihi: <input type="date" id="baslangicTarih"></label>
-      <label>Bitiş Tarihi: <input type="date" id="bitisTarih"></label>
-      <button id="tarihliIndir">📥 Bu Aralıktaki Poliçeleri İndir</button>
-    </section>
-  </main>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const loginForm = document.getElementById("login-form");
+      const successModal = document.getElementById("successModal");
+      const closeModal = document.getElementById("closeModal");
+      const proceedButton = document.getElementById("proceedButton");
 
-  <footer>
-    <p>&copy; 2025 Ergün Sigorta</p>
-  </footer>
+      loginForm.addEventListener("submit", (event) => {
+        event.preventDefault();
 
-  <!-- JavaScript dosyaları -->
-  <script src="anasayfa.js" type="module"></script>
-  <script type="module" src="firebase.js"></script>
-  <script type="module" src="policeEkle.js"></script>
-  <script type="module" src="raporlamaFirebase.js"></script>
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        // Giriş kontrolü
+        if (username === "osmanergun42" && password === "sifre123") {
+          localStorage.setItem("isLoggedIn", "true");
+          successModal.style.display = "flex";
+        } else {
+          alert("❌ Kullanıcı adı veya şifre hatalı.");
+        }
+      });
+
+      closeModal.onclick = function () {
+        successModal.style.display = "none";
+      };
+
+      proceedButton.onclick = function () {
+        window.location.href = "anasayfa.html";
+      };
+
+      window.onclick = function (event) {
+        if (event.target === successModal) {
+          successModal.style.display = "none";
+        }
+      };
+    });
+  </script>
+
 </body>
 </html>

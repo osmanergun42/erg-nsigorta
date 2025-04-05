@@ -142,15 +142,37 @@ footer {
   padding: 1rem;
   background: #f0f0f0;
 }
+
 #uyariTablosu {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
   border: 2px solid #ff9800;
-  margin-top: 1rem;
+  font-size: 16px;
+}
+
+#uyariTablosu th, 
+#uyariTablosu td {
+  padding: 12px 14px;
+  border: 1px solid #ddd;
+  text-align: left;
 }
 
 #uyariTablosu th {
   background-color: #ff9800;
   color: white;
+  font-weight: bold;
 }
+
+#uyariTablosu tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+#uyariTablosu tbody tr:hover {
+  background-color: #fff3e0;
+}
+
 .grafik-container {
   display: flex;
   flex-wrap: wrap;
