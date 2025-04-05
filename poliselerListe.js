@@ -57,11 +57,11 @@ async function poliseleriGetir() {
       <td>${veri.dis}</td>
       <td>${veri.sirket || "-"}</td>
       <td>${veri.policeNo || "-"}</td>
-      <td style="text-align: center;">
-        <button onclick="silPolice('${veri.id}')">❌</button>
-        <button onclick="duzenlePolice('${veri.id}')">✏️</button>
-      </td>
-    `;
+  <td>
+    <button class="btn-sil" onclick="silPolice('${veri.id}')">❌</button>
+    <button class="btn-duzenle" onclick="duzenlePolice('${veri.id}')">✏️</button>
+  </td>
+`;
     
       tabloBody.appendChild(tr);
     });
