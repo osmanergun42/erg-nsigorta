@@ -54,9 +54,10 @@ header a {
 /* SAYFA İÇERİK */
 main {
   padding: 2rem;
-  max-width: 900px;
+  max-width: 1200px;  /* 🔼 Artırıldı */
   margin: auto;
 }
+
 
 section {
   background: white;
@@ -403,5 +404,25 @@ canvas {
 }
 .btn-duzenle:hover {
   background-color: #e67e22;
+}
+/* ✅ Tabloya düzgün hizalama ve scroll */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* eşit hücre genişliği için */
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+  word-wrap: break-word; /* metin taşmasın diye */
+  white-space: normal;
+}
+
+/* ✅ Responsive scroll */
+table {
+  display: block;
+  overflow-x: auto;
 }
 

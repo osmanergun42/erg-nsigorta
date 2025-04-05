@@ -47,21 +47,22 @@ async function poliseleriGetir() {
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${veri.musteri}</td>
-        <td>${veri.plaka || "-"}</td>
-        <td>${veri.tescilNo || "-"}</td>
-        <td>${veri.tur}</td>
-        <td>${veri.bitis}</td>
-        <td>${veri.prim} ₺</td>
-        <td>${veri.kimin}</td>
-        <td>${veri.dis}</td>
-        <td>${veri.sirket || "-"}</td>
-        <td>${veri.policeNo || "-"}</td>
-        <td>
-          <button onclick="silPolice('${veri.id}')">❌</button>
-          <button onclick="duzenlePolice('${veri.id}')">✏️</button>
-        </td>
-      `;
+      <td>${veri.musteri}</td>
+      <td>${veri.plaka || "-"}</td>
+      <td>${veri.tescilNo || "-"}</td>
+      <td>${veri.tur}</td>
+      <td>${veri.bitis}</td>
+      <td>${veri.prim} ₺</td>
+      <td>${veri.kimin}</td>
+      <td>${veri.dis}</td>
+      <td>${veri.sirket || "-"}</td>
+      <td>${veri.policeNo || "-"}</td>
+      <td style="text-align: center;">
+        <button onclick="silPolice('${veri.id}')">❌</button>
+        <button onclick="duzenlePolice('${veri.id}')">✏️</button>
+      </td>
+    `;
+    
       tabloBody.appendChild(tr);
     });
   } catch (err) {

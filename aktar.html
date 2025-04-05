@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>LocalStorage'dan Firestore'a Aktar</title>
+</head>
+<body>
+  <h1>📤 LocalStorage'daki Verileri Firebase'e Aktar</h1>
+  <button id="aktarBtn">Aktar</button>
+
+  <script type="module">
+    import { db } from "./firebase.js";
+    import {
+      collection,
+      addDoc
+    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    document.getElementById("aktarBtn").addEventListener("click", async () => {
+      const customers = JSON.parse(localStorage.getItem("customers")) || [];
+      const policiesRaw = localStorage.getItem("policies");
+      const policies = [];
+
+      // Verileri düzgün formatla
+      if (policiesRaw) {
+        Object.entries(JSON.parse(policiesRaw)).forEach(([musteri, json]) => {
+          try {
+            const p = JSON.parse(json);
+            policies.push({ musteri, ...p });
+          } catch (e) {
+            console.warn("Geçersiz JSON poliçe:", json);
+          }
+        });
+      }
+
+      // Müşterileri ekle
+      for (const c of customers) {
+        try {
+          await addDoc(collection(db, "customers"), c);
+        } catch (e) {
+          console.error("Müşteri eklenemedi:", c, e);
+        }
+      }
+
+      // Poliçeleri ekle
+      for (const p of policies) {
+        try {
+          await addDoc(collection(db, "policeler"), p);
+        } catch (e) {
+          console.error("Poliçe eklenemedi:", p, e);
+        }
+      }
+
+      alert("✅ Aktarım tamamlandı!");
+    });
+  </script>
+</body>
+</html>
