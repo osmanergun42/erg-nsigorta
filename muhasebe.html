@@ -1,4 +1,3 @@
-<!-- muhasebe.html -->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -16,7 +15,14 @@
     <section>
       <label for="kiminFiltre">Kimin Müşterisi:</label>
       <input type="text" id="kiminFiltre" placeholder="Kimin müşterisi...">
-      <input type="text" id="disFiltre" placeholder="Dış acente...">      
+
+      <label for="disFiltre">Dış Acente:</label>
+      <input type="text" id="disFiltre" placeholder="Dış acente...">
+
+      <label for="ayFiltre">Ay:</label>
+      <input type="month" id="ayFiltre">
+
+      <button id="filtreleBtn">🔍 Filtrele</button>
       <button id="excelAktar">📥 Excel'e Aktar</button>
     </section>
 
@@ -26,6 +32,8 @@
           <tr>
             <th>Müşteri</th>
             <th>Poliçe Türü</th>
+            <th>Başlangıç</th>
+            <th>Bitiş</th>
             <th>Prim (₺)</th>
             <th>Kimin Müşterisi</th>
             <th>Kimin Komisyonu (₺)</th>
@@ -36,7 +44,7 @@
         <tbody></tbody>
         <tfoot>
           <tr>
-            <td colspan="2"><strong>TOPLAM</strong></td>
+            <td colspan="4"><strong>TOPLAM</strong></td>
             <td id="toplamPrim">₺0</td>
             <td></td>
             <td id="toplamKimin">₺0</td>
@@ -46,37 +54,13 @@
         </tfoot>
       </table>
     </section>
-    <section>
-        <h2>📅 Tarih Aralığına Göre Poliçeleri Excel'e Aktar</h2>
-        <label>Başlangıç: <input type="date" id="tarihBaslangic"></label>
-        <label>Bitiş: <input type="date" id="tarihBitis"></label>
-        <button id="onizleBtn">🔍 Önizle</button>
-        <button id="excelAktarBtn" disabled>📥 Excel İndir</button>
-      </section>
-      
-      <section>
-        <table id="onizlemeTablosu" style="margin-top: 20px;">
-          <thead>
-            <tr>
-              <th>Müşteri</th>
-              <th>Poliçe Türü</th>
-              <th>Bitiş Tarihi</th>
-              <th>Prim</th>
-              <th>Kimin Müşterisi</th>
-              <th>Dış Acente</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </section>
-      
   </main>
 
   <script type="module" src="muhasebe.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script type="module" src="firebase.js"></script>
-  <script type="module" src="policeEkle.js"></script> <!-- sadece poliçe formundaysa -->
-  <script type="module" src="raporlamaFirebase.js"></script> <!-- sadece raporlama sayfasında -->
-  
+  <script type="module" src="policeEkle.js"></script>
+  <script type="module" src="raporlamaFirebase.js"></script>
+
 </body>
 </html>

@@ -9,7 +9,7 @@ import * as XLSX from "https://cdn.jsdelivr.net/npm/xlsx/xlsx.mjs";
 let tumPoliceler = [];
 let turChart, aylikPrimChart, aylikKomisyonChart, kiminPieChart;
 
-// 📥 Verileri Firebase'den al
+// 📥 Verileri al ve işle
 async function verileriGetir() {
   const querySnapshot = await getDocs(collection(db, "policeler"));
   tumPoliceler = [];
@@ -17,132 +17,51 @@ async function verileriGetir() {
     tumPoliceler.push(doc.data());
   });
 
+  filtreleriDoldur();
   grafikleriCiz();
-  acenteDropdownDoldur();
-  guncelleKiminTablosu();
 }
 
-// 📌 Kimin Müşterisi araması
-const kiminInput = document.getElementById("kiminFiltre");
-const kiminTablo = document.querySelector("#kiminTablosu tbody");
+// 🔽 Dropdown filtrelerini doldur
+function filtreleriDoldur() {
+  const acenteSelect = document.getElementById("acenteFiltre");
+  const aySelect = document.getElementById("ayFiltre"); // 👈 yeni dropdown
 
-function guncelleKiminTablosu() {
-  const filtre = kiminInput.value.toLowerCase();
-  kiminTablo.innerHTML = "";
-  const filtrelenmis = tumPoliceler.filter(p => p.kimin?.toLowerCase().includes(filtre));
-
-  filtrelenmis.forEach(p => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${p.musteri}</td>
-      <td>${p.tur}</td>
-      <td>${p.bitis}</td>
-      <td>${p.prim} ₺</td>
-      <td>${p.kimin}</td>
-      <td>${p.dis}</td>
-    `;
-    kiminTablo.appendChild(tr);
-  });
-}
-
-kiminInput?.addEventListener("input", guncelleKiminTablosu);
-
-document.getElementById("excelAktar")?.addEventListener("click", () => {
-  const rows = [["Müşteri", "Tür", "Bitiş", "Prim", "Kimin", "Dış Acente"]];
-  const filtre = kiminInput.value.toLowerCase();
-
-  tumPoliceler.forEach(p => {
-    if (p.kimin?.toLowerCase().includes(filtre)) {
-      rows.push([p.musteri, p.tur, p.bitis, `${p.prim} ₺`, p.kimin, p.dis]);
-    }
-  });
-
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  XLSX.utils.book_append_sheet(wb, ws, "Kimin Müsterisi");
-  XLSX.writeFile(wb, "rapor_kimin.xlsx");
-});
-
-// 📅 Tarih Aralığıyla filtreleme
-const tarihTablo = document.querySelector("#tarihTablosu tbody");
-const onizleBtn = document.getElementById("onizleBtn");
-const excelTarihBtn = document.getElementById("excelTarihAktarBtn");
-let filtrelenmisTarih = [];
-
-onizleBtn?.addEventListener("click", () => {
-  const bas = new Date(document.getElementById("tarihBaslangic").value);
-  const bit = new Date(document.getElementById("tarihBitis").value);
-  bit.setHours(23, 59, 59);
-
-  if (isNaN(bas) || isNaN(bit)) {
-    alert("Tarihleri eksiksiz girin.");
-    return;
-  }
-
-  filtrelenmisTarih = tumPoliceler.filter(p => {
-    const bitisTarihi = new Date(p.bitis);
-    return bitisTarihi >= bas && bitisTarihi <= bit;
-  });
-
-  tarihTablo.innerHTML = "";
-  if (filtrelenmisTarih.length === 0) {
-    tarihTablo.innerHTML = `<tr><td colspan="6">Veri bulunamadı.</td></tr>`;
-    excelTarihBtn.disabled = true;
-    return;
-  }
-
-  filtrelenmisTarih.forEach(p => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${p.musteri}</td>
-      <td>${p.tur}</td>
-      <td>${p.bitis}</td>
-      <td>${p.prim} ₺</td>
-      <td>${p.kimin}</td>
-      <td>${p.dis}</td>
-    `;
-    tarihTablo.appendChild(tr);
-  });
-
-  excelTarihBtn.disabled = false;
-});
-
-excelTarihBtn?.addEventListener("click", () => {
-  const rows = [["Müşteri", "Tür", "Bitiş", "Prim", "Kimin", "Dış Acente"]];
-  filtrelenmisTarih.forEach(p => {
-    rows.push([p.musteri, p.tur, p.bitis, `${p.prim} ₺`, p.kimin, p.dis]);
-  });
-
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  XLSX.utils.book_append_sheet(wb, ws, "Tarih Aralığı");
-  XLSX.writeFile(wb, "rapor_tarih_araligi.xlsx");
-});
-
-// 🔽 Grafik filtreleme dropdown'u
-function acenteDropdownDoldur() {
-  const select = document.getElementById("acenteFiltre");
   const acenteler = [...new Set(tumPoliceler.map(p => p.kimin).filter(Boolean))];
+  const aylar = [...new Set(tumPoliceler.map(p => new Date(p.bitis).toISOString().slice(0, 7)))];
 
-  select.innerHTML = `<option value="">Tümü</option>`;
-  acenteler.forEach(acente => {
-    const option = document.createElement("option");
-    option.value = acente;
-    option.textContent = acente;
-    select.appendChild(option);
+  acenteSelect.innerHTML = `<option value="">Tümü</option>`;
+  aySelect.innerHTML = `<option value="">Tümü</option>`;
+
+  acenteler.forEach(a => {
+    const o = document.createElement("option");
+    o.value = a;
+    o.textContent = a;
+    acenteSelect.appendChild(o);
   });
 
-  select.addEventListener("change", () => {
-    grafikleriCiz(select.value);
+  aylar.sort().forEach(a => {
+    const o = document.createElement("option");
+    o.value = a;
+    o.textContent = a;
+    aySelect.appendChild(o);
   });
+
+  acenteSelect.addEventListener("change", grafikleriCiz);
+  aySelect.addEventListener("change", grafikleriCiz);
 }
 
-// 📊 Grafik çizimi
-function grafikleriCiz(filtre = "") {
-  const veriler = filtre
-    ? tumPoliceler.filter(p => p.kimin.toLowerCase() === filtre.toLowerCase())
-    : tumPoliceler;
+// 📊 Grafik çizimi ve filtre
+function grafikleriCiz() {
+  const acente = document.getElementById("acenteFiltre").value;
+  const ay = document.getElementById("ayFiltre").value;
 
+  const veriler = tumPoliceler.filter(p => {
+    const kiminEslesme = !acente || (p.kimin?.toLowerCase() === acente.toLowerCase());
+    const ayEslesme = !ay || new Date(p.bitis).toISOString().slice(0, 7) === ay;
+    return kiminEslesme && ayEslesme;
+  });
+
+  // Poliçe tür dağılımı
   const turler = {};
   veriler.forEach(p => {
     turler[p.tur] = (turler[p.tur] || 0) + 1;
@@ -161,6 +80,7 @@ function grafikleriCiz(filtre = "") {
     options: { responsive: true }
   });
 
+  // Aylık prim grafiği
   const aylikPrim = {};
   veriler.forEach(p => {
     const ay = new Date(p.bitis).toISOString().slice(0, 7);
@@ -182,6 +102,7 @@ function grafikleriCiz(filtre = "") {
     options: { responsive: true }
   });
 
+  // Aylık komisyon grafiği
   const aylikKomisyon = {};
   veriler.forEach(p => {
     const ay = new Date(p.bitis).toISOString().slice(0, 7);
@@ -204,6 +125,7 @@ function grafikleriCiz(filtre = "") {
     options: { responsive: true }
   });
 
+  // Kimin müşterisi bazlı komisyon dağılımı
   const komisyonlar = {};
   veriler.forEach(p => {
     const kimin = p.kimin;
@@ -227,4 +149,5 @@ function grafikleriCiz(filtre = "") {
   });
 }
 
+// 🔁 Başlat
 verileriGetir();

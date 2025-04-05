@@ -388,4 +388,20 @@ canvas {
   .autocomplete-suggestions div:last-child {
     border-bottom: none;
   }
+/* Silme butonu (❌) */
+.btn-sil {
+  background-color: #e74c3c;
+}
+.btn-sil:hover {
+  background-color: #c0392b;
+}
+
+/* Düzenleme butonu (✏️) */
+.btn-duzenle {
+  background-color: #f39c12;
+  margin-left: 5px;
+}
+.btn-duzenle:hover {
+  background-color: #e67e22;
+}
 

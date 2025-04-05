@@ -22,6 +22,7 @@
         </select>
         <input type="text" id="plaka" placeholder="Plaka (zorunlu)" required>
         <input type="text" id="tescilNo" placeholder="Tescil No (opsiyonel)">
+        <input type="text" id="policeNo" placeholder="Poliçe Numarası (opsiyonel)">
         <input type="text" id="policeTuru" placeholder="Poliçe Türü (Kasko, Trafik...)" required>
         <input type="date" id="baslangicTarihi" required>
         <input type="date" id="bitisTarihi" required>
@@ -30,9 +31,19 @@
         <input type="number" id="kiminKomisyon" placeholder="Kimin Komisyon Oranı (%)" required>
         <input type="text" id="disAcente" placeholder="Dış Acente (Şirket)" required>
         <input type="number" id="disKomisyon" placeholder="Dış Komisyon Oranı (%)" required>
+        <input type="text" id="sirket" placeholder="Sigorta Şirketi (opsiyonel)">
         <button type="submit">Ekle</button>
       </form>
     </section>
+
+    <!-- 📅 Tablodaki filtre için tarih aralığı -->
+    <div style="margin-bottom: 10px;">
+      <label for="tabloFiltreBaslangic">Başlangıç Tarihi:</label>
+      <input type="date" id="tabloFiltreBaslangic">
+      <label for="tabloFiltreBitis">Bitiş Tarihi:</label>
+      <input type="date" id="tabloFiltreBitis">
+      <button id="tarihFiltreleBtn">🔍 Tarihe Göre Filtrele</button>
+    </div>
 
     <section>
       <h2>📄 Poliçe Listesi</h2>
@@ -47,13 +58,21 @@
             <th>Prim</th>
             <th>Kimin Müşterisi</th>
             <th>Dış Acente</th>
-            <th>İşlem</th>
+            <th>Şirket</th> <!-- ✅ Yeni Sütun -->
+            <th>Poliçe No</th> <!-- 🆕 -->
+            <th>İşlem</th>            
           </tr>
         </thead>
         <tbody></tbody>
       </table>
 
       <br>
+
+      <!-- 📤 Excel/JSON dışa aktarım için filtre -->
+      <label>Başlangıç Tarihi (filtre):</label>
+      <input type="date" id="filtreBaslangic">
+      <label>Bitiş Tarihi (filtre):</label>
+      <input type="date" id="filtreBitis">
       <button id="jsonExport">📁 JSON Aktar</button>
       <button id="excelExport">📊 Excel Aktar</button>
     </section>
@@ -67,6 +86,7 @@
           <input type="text" id="duzenlePoliceTuru" placeholder="Poliçe Türü" required>
           <input type="text" id="duzenlePlaka" placeholder="Plaka (zorunlu)" required>
           <input type="text" id="duzenleTescilNo" placeholder="Tescil No (opsiyonel)">
+          <input type="text" id="duzenlePoliceNo" placeholder="Poliçe Numarası (opsiyonel)">
           <input type="date" id="duzenleBaslangic" required>
           <input type="date" id="duzenleBitis" required>
           <input type="number" id="duzenlePrim" placeholder="Prim Tutarı (₺)" required>
@@ -74,6 +94,7 @@
           <input type="number" id="duzenleKiminKomisyon" placeholder="Kimin Komisyon Oranı (%)" required>
           <input type="text" id="duzenleDis" placeholder="Dış Acente" required>
           <input type="number" id="duzenleDisKomisyon" placeholder="Dış Komisyon Oranı (%)" required>
+          <input type="text" id="duzenleSirket" placeholder="Sigorta Şirketi (opsiyonel)">
           <button type="submit">Kaydet</button>
         </form>
       </div>

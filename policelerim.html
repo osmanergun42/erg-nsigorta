@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poliçelerim</title>
+    <link rel="stylesheet" href="policelerim.css">
+    <style>
+        #filters {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            padding: 10px;
+            z-index: 100;
+            border-bottom: 1px solid #ccc;
+        }
+        #filters input, #filters select {
+            margin-right: 10px;
+        }
+        #filters button {
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Poliçelerim</h1>
+        <div id="filters">
+            <label for="filter-name">Ad Soyad:</label>
+            <input type="text" id="filter-name" placeholder="Ad Soyad">
+
+            <label for="filter-license-plate">Plaka:</label>
+            <input type="text" id="filter-license-plate" placeholder="Plaka">
+
+            <label for="filter-start-date">Başlangıç Tarihi:</label>
+            <input type="date" id="filter-start-date">
+
+            <label for="filter-end-date">Bitiş Tarihi:</label>
+            <input type="date" id="filter-end-date">
+
+            <button id="filter-button">Filtrele</button>
+            <button id="clear-button">Filtreleri Temizle</button>
+        </div>
+    </div>
+
+    <table id="policy-table">
+        <thead>
+            <tr>
+                <th>Müşteri Adı</th>
+                <th>Poliçe Tipi</th>
+                <th>Başlangıç Tarihi</th>
+                <th>Bitiş Tarihi</th>
+                <th>Prim (TL)</th>
+                <th>Komisyon (TL)</th>
+                <th>Plaka</th>
+                <th>Şirket</th>
+                <th>Durum</th>
+            </tr>
+        </thead>
+        <tbody id="policy-list">
+            <!-- Poliçeler burada listelenecek -->
+        </tbody>
+    </table>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js" type="module"></script>
+    <script src="js/firebase.js" type="module"></script>
+    <script src="js/policelerim.js" type="module"></script>
+    <script src="js/poliselerListe.js" type="module"></script>
+</body>
+</html>

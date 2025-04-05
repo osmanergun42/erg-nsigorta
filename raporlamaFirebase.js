@@ -4,49 +4,101 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+import * as XLSX from "https://cdn.jsdelivr.net/npm/xlsx/xlsx.mjs";
+
 let tumPoliceler = [];
 let turChart, aylikPrimChart, aylikKomisyonChart, kiminPieChart;
 
-// Verileri Firebase'den al
+// Veri çek
 async function verileriGetir() {
   const querySnapshot = await getDocs(collection(db, "policeler"));
   tumPoliceler = [];
   querySnapshot.forEach(doc => {
     const veri = doc.data();
-    if (!veri.iptalDurumu) { // sadece aktif poliçeleri al
+    if (!veri.iptalDurumu) {
       tumPoliceler.push(veri);
     }
   });
 
-  grafikleriCiz();
   acenteDropdownDoldur();
+  grafikleriCiz();
 }
 
-// Dropdown filtreleme menüsü
 function acenteDropdownDoldur() {
   const select = document.getElementById("acenteFiltre");
-  const uniqueAcenteler = [...new Set(tumPoliceler.map(p => p.kimin).filter(Boolean))];
-
+  const acenteler = [...new Set(tumPoliceler.map(p => p.kimin).filter(Boolean))];
   select.innerHTML = `<option value="">Tümü</option>`;
-  uniqueAcenteler.forEach(acente => {
+  acenteler.forEach(acente => {
     const option = document.createElement("option");
     option.value = acente;
     option.textContent = acente;
     select.appendChild(option);
   });
-
-  select.addEventListener("change", () => {
-    grafikleriCiz(select.value);
-  });
 }
 
-// Grafikler
-function grafikleriCiz(filtre = "") {
-  const veriler = filtre
-    ? tumPoliceler.filter(p => p.kimin.toLowerCase() === filtre.toLowerCase())
-    : tumPoliceler;
+document.getElementById("filtreleBtn")?.addEventListener("click", () => {
+  const acente = document.getElementById("acenteFiltre").value;
+  const ay = document.getElementById("ayFiltre").value; // 2025-01 gibi gelir
 
-  // === Poliçe Türü Dağılımı ===
+  const veriler = tumPoliceler.filter(p => {
+    const kiminUygun = !acente || p.kimin === acente;
+    const ayUygun = !ay || (p.bitis && p.bitis.startsWith(ay));
+    return kiminUygun && ayUygun;
+  });
+
+  tabloyuGoster(veriler);
+  grafikleriCiz(veriler);
+});
+
+function tabloyuGoster(veriler) {
+  const tablo = document.querySelector("#filtreTablosu tbody");
+  tablo.innerHTML = "";
+
+  veriler.forEach(p => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${p.musteri || "-"}</td>
+      <td>${p.plaka || "-"}</td>
+      <td>${p.tescilNo || "-"}</td>
+      <td>${p.tur || "-"}</td>
+      <td>${p.baslangic || "-"}</td>
+      <td>${p.bitis || "-"}</td>
+      <td>${p.prim || "0"} ₺</td>
+      <td>${p.kimin || "-"}</td>
+      <td>${p.dis || "-"}</td>
+    `;
+    tablo.appendChild(tr);
+  });
+
+  // Excel için veriyi cachele
+  window.sonFiltreliVeri = veriler;
+}
+
+// Excel'e aktar
+document.getElementById("excelFiltreAktarBtn")?.addEventListener("click", () => {
+  const veri = (window.sonFiltreliVeri || []).map(p => {
+    return {
+      "Müşteri": p.musteri,
+      "Plaka": p.plaka,
+      "Tescil No": p.tescilNo,
+      "Tür": p.tur,
+      "Başlangıç": p.baslangic,
+      "Bitiş": p.bitis,
+      "Prim (₺)": Number(p.prim).toFixed(2),
+      "Kimin Müşterisi": p.kimin,
+      "Dış Acente": p.dis
+    };
+  });
+
+  const ws = XLSX.utils.json_to_sheet(veri);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Filtreli Poliçeler");
+  XLSX.writeFile(wb, "filtreli_policeler.xlsx");
+});
+
+function grafikleriCiz(veriSeti = tumPoliceler) {
+  const veriler = veriSeti;
+
   const turler = {};
   veriler.forEach(p => {
     turler[p.tur] = (turler[p.tur] || 0) + 1;
@@ -64,10 +116,9 @@ function grafikleriCiz(filtre = "") {
     }
   });
 
-  // === Aylık Prim ===
   const aylikPrim = {};
   veriler.forEach(p => {
-    const ay = new Date(p.bitis).toISOString().slice(0, 7);
+    const ay = (p.bitis || "").slice(0, 7);
     aylikPrim[ay] = (aylikPrim[ay] || 0) + Number(p.prim || 0);
   });
   if (aylikPrimChart) aylikPrimChart.destroy();
@@ -86,14 +137,12 @@ function grafikleriCiz(filtre = "") {
     }
   });
 
-  // === Aylık Toplam Komisyon ===
   const aylikKomisyon = {};
   veriler.forEach(p => {
-    const ay = new Date(p.bitis).toISOString().slice(0, 7);
+    const ay = (p.bitis || "").slice(0, 7);
     const komisyon = (Number(p.prim || 0) * ((Number(p.disKomisyon) || 0) + (Number(p.kiminKomisyon) || 0))) / 100;
     aylikKomisyon[ay] = (aylikKomisyon[ay] || 0) + komisyon;
   });
-
   if (aylikKomisyonChart) aylikKomisyonChart.destroy();
   aylikKomisyonChart = new Chart(document.getElementById("aylikKomisyonGrafik"), {
     type: "line",
@@ -110,14 +159,12 @@ function grafikleriCiz(filtre = "") {
     }
   });
 
-  // === Kimin Müşterisi Bazlı Komisyon Pastası ===
   const komisyonlar = {};
   veriler.forEach(p => {
     const kimin = p.kimin;
-    const kom = (Number(p.prim || 0) * ((Number(p.kiminKomisyon) || 0))) / 100;
+    const kom = (Number(p.prim || 0) * Number(p.kiminKomisyon || 0)) / 100;
     komisyonlar[kimin] = (komisyonlar[kimin] || 0) + kom;
   });
-
   if (kiminPieChart) kiminPieChart.destroy();
   kiminPieChart = new Chart(document.getElementById("kiminKomisyonPie"), {
     type: "pie",
@@ -131,4 +178,5 @@ function grafikleriCiz(filtre = "") {
   });
 }
 
+// Başlat
 verileriGetir();

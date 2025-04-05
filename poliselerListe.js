@@ -13,7 +13,7 @@ const tabloBody = document.querySelector("#policeTablo tbody");
 let policeListesi = [];
 let guncellenecekID = null;
 
-// 🔄 Poliçeleri Firebase'den çek ve tabloya yaz
+// 🔄 Firebase'den verileri çek ve tabloya yaz
 async function poliseleriGetir() {
   try {
     const querySnapshot = await getDocs(collection(db, "policeler"));
@@ -35,11 +35,13 @@ async function poliseleriGetir() {
         <td>${veri.prim} ₺</td>
         <td>${veri.kimin}</td>
         <td>${veri.dis}</td>
+        <td>${veri.sirket || "-"}</td>
+        <td>${veri.policeNo || "-"}</td> <!-- 🆕 Poliçe Numarası -->
         <td>
           <button onclick="silPolice('${veri.id}')">❌</button>
           <button onclick="duzenlePolice('${veri.id}')">✏️</button>
         </td>
-      `;
+      `;      
       tabloBody.appendChild(tr);
     });
   } catch (err) {
@@ -47,7 +49,7 @@ async function poliseleriGetir() {
   }
 }
 
-// ❌ Silme işlemi
+// ❌ Sil
 window.silPolice = async (id) => {
   if (confirm("Bu poliçeyi silmek istiyor musunuz?")) {
     await deleteDoc(doc(db, "policeler", id));
@@ -56,7 +58,7 @@ window.silPolice = async (id) => {
   }
 };
 
-// ✏️ Poliçeyi düzenlemek için modalı aç
+// ✏️ Düzenleme modalını aç
 window.duzenlePolice = function (id) {
   const veri = policeListesi.find(p => p.id === id);
   if (!veri) return;
@@ -73,11 +75,13 @@ window.duzenlePolice = function (id) {
   document.getElementById("duzenleKiminKomisyon").value = veri.kiminKomisyon;
   document.getElementById("duzenleDis").value = veri.dis;
   document.getElementById("duzenleDisKomisyon").value = veri.disKomisyon;
+  document.getElementById("duzenleSirket").value = veri.sirket || "";
+  document.getElementById("duzenlePoliceNo").value = veri.policeNo || "";
 
   document.getElementById("duzenleModal").style.display = "block";
 };
 
-// ✅ Güncelleme formu gönderildiğinde Firestore’a yaz
+// ✅ Güncelleme işlemi
 document.getElementById("duzenleForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const ref = doc(db, "policeler", guncellenecekID);
@@ -92,7 +96,9 @@ document.getElementById("duzenleForm").addEventListener("submit", async (e) => {
     kimin: document.getElementById("duzenleKimin").value,
     kiminKomisyon: Number(document.getElementById("duzenleKiminKomisyon").value),
     dis: document.getElementById("duzenleDis").value,
-    disKomisyon: Number(document.getElementById("duzenleDisKomisyon").value)
+    disKomisyon: Number(document.getElementById("duzenleDisKomisyon").value),
+    sirket: document.getElementById("duzenleSirket").value,
+    policeNo: document.getElementById("duzenlePoliceNo").value
   });
 
   document.getElementById("duzenleModal").style.display = "none";
@@ -100,7 +106,7 @@ document.getElementById("duzenleForm").addEventListener("submit", async (e) => {
   poliseleriGetir();
 });
 
-// 🔒 Modalı kapatma işlemleri
+// 🔒 Modal kapatma
 document.getElementById("kapatModal").onclick = () => {
   document.getElementById("duzenleModal").style.display = "none";
 };
@@ -124,22 +130,66 @@ document.getElementById("jsonExport").addEventListener("click", () => {
 
 // 📊 Excel Aktar
 document.getElementById("excelExport").addEventListener("click", () => {
-  const veri = policeListesi.map(p => ({
-    "Müşteri": p.musteri,
-    "Plaka": p.plaka || "",
-    "Tescil No": p.tescilNo || "",
-    "Tür": p.tur,
-    "Bitiş": p.bitis,
-    "Prim": p.prim,
-    "Kimin Müşterisi": p.kimin,
-    "Dış Acente": p.dis
-  }));
+  const filtreBas = document.getElementById("filtreBaslangic").value;
+  const filtreBit = document.getElementById("filtreBitis").value;
+
+  const basTarih = filtreBas ? new Date(filtreBas) : null;
+  const bitTarih = filtreBit ? new Date(filtreBit) : null;
+
+  const filtreliVeri = policeListesi.filter(p => {
+    const baslangic = new Date(p.baslangic);
+    if (basTarih && baslangic < basTarih) return false;
+    if (bitTarih && baslangic > bitTarih) return false;
+    return true;
+  });
+
+  const veri = filtreliVeri.map(p => {
+    const prim = Number(p.prim);
+    const disKom = Number(p.disKomisyon);
+    const kiminKom = Number(p.kiminKomisyon);
+
+    const disKomTutar = (prim * disKom / 100).toFixed(2);
+    const kiminKomTutar = (prim * kiminKom / 100).toFixed(2);
+
+    return {
+      "Müşteri Adı": p.musteri,
+      "Poliçe Tipi": p.tur,
+      "Başlangıç Tarihi": new Date(p.baslangic),
+      "Bitiş Tarihi": new Date(p.bitis),
+      "Prim Miktarı (₺)": prim.toFixed(2),
+      "Poliçe Numarası": p.policeNo || "-",       // ✅ Eklendi
+      "Plaka": p.plaka || "-",
+      "Tescil Numarası": p.tescilNo || "-",
+      "Şirket": p.sirket || "-",
+      "Dış Acente": p.dis || "-",
+      "Dış Acente Komisyonu": `${disKomTutar} (%${disKom})`,
+      "Kimin Müşterisi": p.kimin || "-",
+      "Kimin Müşterisi Komisyonu": `${kiminKomTutar} (%${kiminKom})`
+    };
+  });
 
   const ws = XLSX.utils.json_to_sheet(veri);
+  ws['!cols'] = [
+    { wch: 18 }, // Müşteri Adı
+    { wch: 14 }, // Poliçe Tipi
+    { wch: 14 }, // Başlangıç
+    { wch: 14 }, // Bitiş
+    { wch: 16 }, // Prim
+    { wch: 18 }, // Poliçe No  ✅
+    { wch: 14 }, // Plaka
+    { wch: 16 }, // Tescil No
+    { wch: 18 }, // Şirket
+    { wch: 20 }, // Dış Acente
+    { wch: 22 }, // Dış Kom.
+    { wch: 20 }, // Kimin
+    { wch: 26 }  // Kimin Kom.
+  ];
+
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Policeler");
   XLSX.writeFile(wb, "policeler.xlsx");
 });
 
-// 🚀 Başlat
+
+// 🚀 Sayfa yüklendiğinde verileri getir
 poliseleriGetir();
