@@ -10,8 +10,11 @@ import {
 import * as XLSX from "https://cdn.jsdelivr.net/npm/xlsx/xlsx.mjs";
 
 const tabloBody = document.querySelector("#policeTablo tbody");
+const sayfalamaDiv = document.getElementById("sayfalama");
 let policeListesi = [];
 let guncellenecekID = null;
+let aktifSayfa = 1;
+const sayfaBasina = 10;
 
 // Eksik alanları tamamlama
 async function eksikAlanlariGuncelle() {
@@ -28,11 +31,44 @@ async function eksikAlanlariGuncelle() {
   });
 }
 
-// Tüm poliçeleri getir
-async function poliseleriGetir(veriKumesi = null) {
-  const veriListesi = veriKumesi || await getTumPoliceler();
+// Firebase'den tüm verileri çek
+async function getTumPoliceler() {
+  const querySnapshot = await getDocs(collection(db, "policeler"));
+  let liste = [];
+  querySnapshot.forEach(docSnap => {
+    const veri = docSnap.data();
+    veri.id = docSnap.id;
+    liste.push(veri);
+  });
+  return liste;
+}
+
+// Sayfalamayı çiz
+function sayfalariGoster(veriler) {
+  const toplamSayfa = Math.ceil(veriler.length / sayfaBasina);
+  sayfalamaDiv.innerHTML = "";
+
+  for (let i = 1; i <= toplamSayfa; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    btn.style.margin = "0 5px";
+    if (i === aktifSayfa) btn.style.fontWeight = "bold";
+    btn.addEventListener("click", () => {
+      aktifSayfa = i;
+      tabloyuGoster(veriler);
+    });
+    sayfalamaDiv.appendChild(btn);
+  }
+}
+
+// Tabloyu oluştur
+function tabloyuGoster(veriler) {
   tabloBody.innerHTML = "";
-  veriListesi.forEach(veri => {
+  const start = (aktifSayfa - 1) * sayfaBasina;
+  const end = start + sayfaBasina;
+  const gosterilecekler = veriler.slice(start, end);
+
+  gosterilecekler.forEach(veri => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${veri.musteri}</td>
@@ -52,37 +88,9 @@ async function poliseleriGetir(veriKumesi = null) {
     `;
     tabloBody.appendChild(tr);
   });
+
+  sayfalariGoster(veriler);
 }
-
-// Firebase'den tüm verileri çek
-async function getTumPoliceler() {
-  const querySnapshot = await getDocs(collection(db, "policeler"));
-  policeListesi = [];
-  querySnapshot.forEach(docSnap => {
-    const veri = docSnap.data();
-    veri.id = docSnap.id;
-    policeListesi.push(veri);
-  });
-  return policeListesi;
-}
-
-// Filtrele
-document.getElementById("tarihFiltreleBtn")?.addEventListener("click", async () => {
-  const bas = document.getElementById("tabloFiltreBaslangic").value;
-  const bit = document.getElementById("tabloFiltreBitis").value;
-  const basT = bas ? new Date(bas) : null;
-  const bitT = bit ? new Date(bit) : null;
-
-  const tumVeri = await getTumPoliceler();
-  const filtreli = tumVeri.filter(p => {
-    const t = new Date(p.baslangic);
-    if (basT && t < basT) return false;
-    if (bitT && t > bitT) return false;
-    return true;
-  });
-
-  poliseleriGetir(filtreli);
-});
 
 // Delegasyonla sil/düzenle
 tabloBody.addEventListener("click", (e) => {
@@ -96,7 +104,7 @@ async function silPolice(id) {
   if (confirm("Silmek istediğine emin misin?")) {
     await deleteDoc(doc(db, "policeler", id));
     alert("✅ Silindi!");
-    poliseleriGetir();
+    await veriYukle();
   }
 }
 
@@ -120,7 +128,6 @@ function duzenlePolice(id) {
   document.getElementById("duzenleModal").style.display = "block";
 }
 
-// Güncelleme
 document.getElementById("duzenleForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const ref = doc(db, "policeler", guncellenecekID);
@@ -142,7 +149,7 @@ document.getElementById("duzenleForm").addEventListener("submit", async (e) => {
 
   document.getElementById("duzenleModal").style.display = "none";
   alert("✔️ Güncellendi");
-  poliseleriGetir();
+  await veriYukle();
 });
 
 // Modal kapatma
@@ -166,7 +173,7 @@ document.getElementById("jsonExport").addEventListener("click", () => {
   URL.revokeObjectURL(url);
 });
 
-// Excel Aktar (tarihe göre filtreli)
+// Excel Aktar (tarih filtreli)
 document.getElementById("excelExport").addEventListener("click", () => {
   const bas = document.getElementById("filtreBaslangic").value;
   const bit = document.getElementById("filtreBitis").value;
@@ -200,6 +207,32 @@ document.getElementById("excelExport").addEventListener("click", () => {
   XLSX.writeFile(wb, "policeler.xlsx");
 });
 
+// Tarih filtreleme
+const tarihFiltreBtn = document.getElementById("tarihFiltreleBtn");
+tarihFiltreBtn?.addEventListener("click", async () => {
+  const bas = document.getElementById("tabloFiltreBaslangic").value;
+  const bit = document.getElementById("tabloFiltreBitis").value;
+  const basT = bas ? new Date(bas) : null;
+  const bitT = bit ? new Date(bit) : null;
+
+  const tumVeri = await getTumPoliceler();
+  policeListesi = tumVeri.filter(p => {
+    const t = new Date(p.baslangic);
+    if (basT && t < basT) return false;
+    if (bitT && t > bitT) return false;
+    return true;
+  });
+
+  aktifSayfa = 1;
+  tabloyuGoster(policeListesi);
+});
+
 // Başlat
+async function veriYukle() {
+  policeListesi = await getTumPoliceler();
+  aktifSayfa = 1;
+  tabloyuGoster(policeListesi);
+}
+
 await eksikAlanlariGuncelle();
-poliseleriGetir();
+await veriYukle();
