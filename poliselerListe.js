@@ -1,3 +1,5 @@
+// poliselerListe.js
+
 import { db } from "./firebase.js";
 import {
   collection,
@@ -12,6 +14,24 @@ import * as XLSX from "https://cdn.jsdelivr.net/npm/xlsx/xlsx.mjs";
 const tabloBody = document.querySelector("#policeTablo tbody");
 let policeListesi = [];
 let guncellenecekID = null;
+
+// ✅ Firestore verilerinde eksik alanları tamamla
+async function eksikAlanlariGuncelle() {
+  const snapshot = await getDocs(collection(db, "policeler"));
+  snapshot.forEach(async (d) => {
+    const veri = d.data();
+    const ref = doc(db, "policeler", d.id);
+
+    const guncelle = {};
+    if (!("tescilNo" in veri)) guncelle.tescilNo = "";
+    if (!("sirket" in veri)) guncelle.sirket = "";
+
+    if (Object.keys(guncelle).length > 0) {
+      await updateDoc(ref, guncelle);
+      console.log(`✅ ${d.id} güncellendi.`);
+    }
+  });
+}
 
 // 🔄 Firebase'den verileri çek ve tabloya yaz
 async function poliseleriGetir() {
@@ -36,12 +56,12 @@ async function poliseleriGetir() {
         <td>${veri.kimin}</td>
         <td>${veri.dis}</td>
         <td>${veri.sirket || "-"}</td>
-        <td>${veri.policeNo || "-"}</td> <!-- 🆕 Poliçe Numarası -->
+        <td>${veri.policeNo || "-"}</td>
         <td>
           <button onclick="silPolice('${veri.id}')">❌</button>
           <button onclick="duzenlePolice('${veri.id}')">✏️</button>
         </td>
-      `;      
+      `;
       tabloBody.appendChild(tr);
     });
   } catch (err) {
@@ -49,7 +69,6 @@ async function poliseleriGetir() {
   }
 }
 
-// ❌ Sil
 window.silPolice = async (id) => {
   if (confirm("Bu poliçeyi silmek istiyor musunuz?")) {
     await deleteDoc(doc(db, "policeler", id));
@@ -58,11 +77,9 @@ window.silPolice = async (id) => {
   }
 };
 
-// ✏️ Düzenleme modalını aç
 window.duzenlePolice = function (id) {
   const veri = policeListesi.find(p => p.id === id);
   if (!veri) return;
-
   guncellenecekID = id;
 
   document.getElementById("duzenlePoliceTuru").value = veri.tur;
@@ -81,7 +98,6 @@ window.duzenlePolice = function (id) {
   document.getElementById("duzenleModal").style.display = "block";
 };
 
-// ✅ Güncelleme işlemi
 document.getElementById("duzenleForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const ref = doc(db, "policeler", guncellenecekID);
@@ -106,7 +122,6 @@ document.getElementById("duzenleForm").addEventListener("submit", async (e) => {
   poliseleriGetir();
 });
 
-// 🔒 Modal kapatma
 document.getElementById("kapatModal").onclick = () => {
   document.getElementById("duzenleModal").style.display = "none";
 };
@@ -117,7 +132,6 @@ window.onclick = (e) => {
   }
 };
 
-// 📁 JSON Aktar
 document.getElementById("jsonExport").addEventListener("click", () => {
   const blob = new Blob([JSON.stringify(policeListesi, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -128,7 +142,6 @@ document.getElementById("jsonExport").addEventListener("click", () => {
   URL.revokeObjectURL(url);
 });
 
-// 📊 Excel Aktar
 document.getElementById("excelExport").addEventListener("click", () => {
   const filtreBas = document.getElementById("filtreBaslangic").value;
   const filtreBit = document.getElementById("filtreBitis").value;
@@ -157,7 +170,7 @@ document.getElementById("excelExport").addEventListener("click", () => {
       "Başlangıç Tarihi": new Date(p.baslangic),
       "Bitiş Tarihi": new Date(p.bitis),
       "Prim Miktarı (₺)": prim.toFixed(2),
-      "Poliçe Numarası": p.policeNo || "-",       // ✅ Eklendi
+      "Poliçe Numarası": p.policeNo || "-",
       "Plaka": p.plaka || "-",
       "Tescil Numarası": p.tescilNo || "-",
       "Şirket": p.sirket || "-",
@@ -170,19 +183,19 @@ document.getElementById("excelExport").addEventListener("click", () => {
 
   const ws = XLSX.utils.json_to_sheet(veri);
   ws['!cols'] = [
-    { wch: 18 }, // Müşteri Adı
-    { wch: 14 }, // Poliçe Tipi
-    { wch: 14 }, // Başlangıç
-    { wch: 14 }, // Bitiş
-    { wch: 16 }, // Prim
-    { wch: 18 }, // Poliçe No  ✅
-    { wch: 14 }, // Plaka
-    { wch: 16 }, // Tescil No
-    { wch: 18 }, // Şirket
-    { wch: 20 }, // Dış Acente
-    { wch: 22 }, // Dış Kom.
-    { wch: 20 }, // Kimin
-    { wch: 26 }  // Kimin Kom.
+    { wch: 18 },
+    { wch: 14 },
+    { wch: 14 },
+    { wch: 14 },
+    { wch: 16 },
+    { wch: 18 },
+    { wch: 14 },
+    { wch: 16 },
+    { wch: 18 },
+    { wch: 20 },
+    { wch: 22 },
+    { wch: 20 },
+    { wch: 26 }
   ];
 
   const wb = XLSX.utils.book_new();
@@ -190,6 +203,6 @@ document.getElementById("excelExport").addEventListener("click", () => {
   XLSX.writeFile(wb, "policeler.xlsx");
 });
 
-
-// 🚀 Sayfa yüklendiğinde verileri getir
+// 🚀 Sayfa yüklendiğinde çalışacak
+await eksikAlanlariGuncelle();
 poliseleriGetir();
