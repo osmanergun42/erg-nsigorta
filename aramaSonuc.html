@@ -75,7 +75,7 @@
   </div>
 
   <script type="module">
-    import { db } from "./js/firebase.js";
+    import { db, getDataByMusteriAdi, getDataByPlaka } from "./js/firebase.js";
     import {
       collection,
       getDocs,
@@ -105,22 +105,26 @@
       filtrele(ilkKelime);
     }
 
-    function filtrele(kelime = "") {
+    async function filtrele(kelime = "") {
       const filtre = kelime?.toLocaleLowerCase("tr-TR").trim();
       tablo.innerHTML = "";
       mesaj.textContent = "";
 
-      const poliEslesenler = tumPoliceler.filter(p =>
-        !filtre ||
-        p.musteri?.toLocaleLowerCase("tr-TR").includes(filtre) ||
-        p.tur?.toLocaleLowerCase("tr-TR").includes(filtre) ||
-        p.plaka?.toLocaleLowerCase("tr-TR").includes(filtre) ||
-        p.tescilNo?.toLocaleLowerCase("tr-TR").includes(filtre)
-      );
+      let poliEslesenler = [];
+      let musteriEslesenler = [];
 
-      const musteriEslesenler = tumMusteriler.filter(m =>
-        m.adSoyad?.toLocaleLowerCase("tr-TR").includes(filtre)
-      );
+      if (filtre) {
+        const poliByMusteriAdi = await getDataByMusteriAdi(filtre);
+        const poliByPlaka = await getDataByPlaka(filtre);
+        poliEslesenler = [...poliByMusteriAdi, ...poliByPlaka];
+
+        musteriEslesenler = tumMusteriler.filter(m => 
+          m.adSoyad?.toLocaleLowerCase("tr-TR").includes(filtre)
+        );
+      } else {
+        poliEslesenler = tumPoliceler;
+        musteriEslesenler = tumMusteriler;
+      }
 
       if (poliEslesenler.length === 0 && musteriEslesenler.length === 0) {
         mesaj.textContent = "Sonuç bulunamadı.";
