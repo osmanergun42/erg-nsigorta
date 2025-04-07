@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Poliçe İptali</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .kutu {
+      margin-top: 20px;
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 10px;
+      border-left: 4px solid #ccc;
+    }
+    #sonucKutu {
+      margin-top: 20px;
+      background: #fff9e6;
+      padding: 15px;
+      border-left: 4px solid orange;
+      display: none;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      background-color: #b30000;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #aramaInput {
+      margin-top: 40px;
+      margin-bottom: 10px;
+      padding: 8px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    #iptalTablosu {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    #iptalTablosu th, #iptalTablosu td {
+      padding: 8px;
+      border: 1px solid #ccc;
+    }
+    .iptaliGeriAlBtn {
+      padding: 6px 12px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛑 Poliçe İptal Ekranı</h1>
+
+  <label for="policeSecimi">🔍 Poliçe Seç (Plaka - Müşteri):</label>
+  <select id="policeSecimi" style="width: 100%"></select>
+
+  <div class="kutu" id="policeBilgiKutusu" style="display:none;">
+    <p><strong>Başlangıç:</strong> <span id="baslangic"></span></p>
+    <p><strong>Bitiş:</strong> <span id="bitis"></span></p>
+    <p><strong>Net Prim:</strong> <span id="prim"></span> ₺</p>
+  </div>
+
+  <label for="iptalTarihi">📅 İptal Tarihi:</label>
+  <input type="date" id="iptalTarihi">
+
+  <label for="kiminOran">👤 Kimin Müşterisi Komisyon Oranı (%):</label>
+  <input type="number" id="kiminOran" readonly>
+
+  <label for="disOran">🏢 Dış Acente Komisyon Oranı (%):</label>
+  <input type="number" id="disOran" readonly>
+
+  <label for="iptalNotu">📄 İptal Notu:</label>
+  <textarea id="iptalNotu" rows="3"></textarea>
+
+  <div id="sonucKutu"></div>
+
+  <button id="iptalBtn">🛑 Poliçeyi İptal Et</button>
+
+  <!-- İPTAL EDİLEN POLİÇELER TABLOSU -->
+  <h2 style="margin-top:50px;">❌ İptal Edilen Poliçeler</h2>
+  <input type="text" id="aramaInput" placeholder="Ara: Müşteri, Plaka, Not, vs...">
+  <table id="iptalTablosu">
+    <thead>
+      <tr>
+        <th>Müşteri</th>
+        <th>Plaka</th>
+        <th>Başlangıç</th>
+        <th>Bitiş</th>
+        <th>İptal Tarihi</th>
+        <th>Prim</th>
+        <th>İşlem</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <div id="sayfalama" style="text-align:center; margin-top:10px;"></div>
+
+  <script type="module">
+    import { db } from "./firebase.js";
+    import {
+      collection, getDocs, doc, updateDoc, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const select = $("#policeSecimi");
+    let policeVerileri = [];
+    let aktifData = null;
+    let iptalEdilenler = [];
+
+    async function yuklePoliceler() {
+      const snap = await getDocs(collection(db, "policeler"));
+      policeVerileri = snap.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          text: `${data.plaka || "Plaka Yok"} - ${data.musteri || "Müşteri Yok"}`,
+          data: { ...data, id: doc.id }
+        };
+      });
+      select.select2({ data: policeVerileri, placeholder: "Seçiniz", allowClear: true });
+      iptalEdilenler = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.iptalDurumu);
+      sayfaliTabloOlustur(iptalEdilenler, 1);
+    }
+
+    function hesaplaKesinti() {
+      const kutu = document.getElementById("sonucKutu");
+      kutu.style.display = "none";
+      if (!aktifData || aktifData.iptalDurumu) return;
+
+      const iptalStr = document.getElementById("iptalTarihi").value;
+      const kiminOran = Number(document.getElementById("kiminOran").value);
+      const disOran = Number(document.getElementById("disOran").value);
+
+      if (!iptalStr || isNaN(kiminOran) || isNaN(disOran)) return;
+
+      const bas = new Date(aktifData.baslangic);
+      const bit = new Date(aktifData.bitis);
+      const iptal = new Date(iptalStr);
+      const prim = Number(aktifData.prim);
+
+      const toplamGun = Math.max((bit - bas) / (1000 * 60 * 60 * 24), 1);
+      const kullanilanGun = Math.max((iptal - bas) / (1000 * 60 * 60 * 24), 0);
+      const gunlukPrim = prim / toplamGun;
+      const kazanilanPrim = gunlukPrim * kullanilanGun;
+      const kesinti = prim - kazanilanPrim;
+
+      const kiminKesinti = (kesinti * kiminOran / 100).toFixed(2);
+      const disKesinti = (kesinti * disOran / 100).toFixed(2);
+
+      kutu.innerHTML = `
+        <strong>Günlük Prim:</strong> ${gunlukPrim.toFixed(2)} ₺<br>
+        <strong>Kullanılan Gün:</strong> ${Math.floor(kullanilanGun)} gün<br>
+        <strong>Kazanılan Prim:</strong> ${kazanilanPrim.toFixed(2)} ₺<br>
+        <strong>Kesinti:</strong> ${kesinti.toFixed(2)} ₺<br>
+        <strong>Kimin Müşterisi Kesinti Payı:</strong> ${kiminKesinti} ₺<br>
+        <strong>Dış Acente Kesinti Payı:</strong> ${disKesinti} ₺
+      `;
+      kutu.style.display = "block";
+
+      aktifData.hesap = {
+        kesinti: kesinti.toFixed(2),
+        kiminKesinti,
+        disKesinti,
+        kazanilanPrim: kazanilanPrim.toFixed(2)
+      };
+    }
+
+    select.on("select2:select", function (e) {
+      aktifData = policeVerileri.find(p => p.id === e.params.data.id)?.data;
+      if (!aktifData) return;
+
+      const bilgi = document.getElementById("policeBilgiKutusu");
+      const baslangic = aktifData.baslangic || "-";
+      const bitis = aktifData.bitis || "-";
+      const prim = aktifData.prim || 0;
+
+      if (aktifData.iptalDurumu) {
+        bilgi.innerHTML = `<p><strong>❌ Bu poliçe ${aktifData.iptalTarihi} tarihinde iptal edilmiştir.</strong></p>`;
+        bilgi.style.display = "block";
+        ["iptalTarihi", "iptalNotu", "iptalBtn"].forEach(id => {
+          document.getElementById(id).disabled = true;
+        });
+        document.getElementById("sonucKutu").style.display = "none";
+        document.getElementById("kiminOran").value = aktifData.kiminKomisyon || 0;
+        document.getElementById("disOran").value = aktifData.disKomisyon || 0;
+        return;
+      }
+
+      bilgi.style.display = "block";
+      document.getElementById("baslangic").textContent = baslangic;
+      document.getElementById("bitis").textContent = bitis;
+      document.getElementById("prim").textContent = prim;
+      document.getElementById("kiminOran").value = aktifData.kiminKomisyon || 0;
+      document.getElementById("disOran").value = aktifData.disKomisyon || 0;
+      hesaplaKesinti();
+    });
+
+    document.getElementById("iptalTarihi").addEventListener("input", hesaplaKesinti);
+
+    document.getElementById("iptalBtn").addEventListener("click", async () => {
+      if (!aktifData || !aktifData.hesap) return alert("Lütfen gerekli tüm bilgileri doldurun!");
+
+      if (!confirm("Bu poliçeyi iptal etmek istiyor musunuz?")) return;
+
+      await updateDoc(doc(db, "policeler", aktifData.id), {
+        iptalDurumu: true,
+        iptalTarihi: document.getElementById("iptalTarihi").value,
+        iptalNotu: document.getElementById("iptalNotu").value || "",
+        kiminKesinti: Number(aktifData.hesap.kiminKesinti),
+        disKesinti: Number(aktifData.hesap.disKesinti),
+        kazanilanPrim: Number(aktifData.hesap.kazanilanPrim),
+        orijinalPrim: aktifData.prim,
+        prim: Number(aktifData.hesap.kazanilanPrim),
+        guncellenme: serverTimestamp()
+      });
+
+      alert("✅ Poliçe başarıyla iptal edildi!");
+      window.location.reload();
+    });
+
+    function sayfaliTabloOlustur(data, sayfa, sayfaBoyutu = 5) {
+      const arama = document.getElementById("aramaInput").value.trim().toLowerCase();
+      const filtreli = data.filter(p =>
+        (p.musteri || "").toLowerCase().includes(arama) ||
+        (p.plaka || "").toLowerCase().includes(arama) ||
+        (p.iptalNotu || "").toLowerCase().includes(arama)
+      );
+
+      const tbody = document.querySelector("#iptalTablosu tbody");
+      tbody.innerHTML = "";
+
+      const basla = (sayfa - 1) * sayfaBoyutu;
+      const bitir = sayfa * sayfaBoyutu;
+      const gosterilecek = filtreli.slice(basla, bitir);
+
+      gosterilecek.forEach(p => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${p.musteri || "-"}</td>
+          <td>${p.plaka || "-"}</td>
+          <td>${p.baslangic || "-"}</td>
+          <td>${p.bitis || "-"}</td>
+          <td>${p.iptalTarihi || "-"}</td>
+          <td>${p.prim || 0} ₺</td>
+          <td><button class="iptaliGeriAlBtn" data-id="${p.id}">Geri Al</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const sayfaDiv = document.getElementById("sayfalama");
+      sayfaDiv.innerHTML = "";
+      const toplamSayfa = Math.ceil(filtreli.length / sayfaBoyutu);
+      for (let i = 1; i <= toplamSayfa; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        btn.onclick = () => sayfaliTabloOlustur(data, i);
+        sayfaDiv.appendChild(btn);
+      }
+
+      document.querySelectorAll(".iptaliGeriAlBtn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-id");
+          if (!confirm("Bu poliçenin iptalini kaldırmak istiyor musunuz?")) return;
+          const ref = doc(db, "policeler", id);
+          await updateDoc(ref, {
+            iptalDurumu: false,
+            iptalTarihi: "",
+            iptalNotu: "",
+            prim: Number(data.find(p => p.id === id)?.orijinalPrim || 0),
+            orijinalPrim: "",
+            kiminKesinti: 0,
+            disKesinti: 0,
+            kazanilanPrim: 0
+          });
+          alert("✅ İptal kaldırıldı!");
+          window.location.reload();
+        });
+      });
+    }
+
+    document.getElementById("aramaInput").addEventListener("input", () => {
+      sayfaliTabloOlustur(iptalEdilenler, 1);
+    });
+
+    yuklePoliceler();
+  </script>
+</body>
+</html>

@@ -24,7 +24,7 @@ async function verileriGetir() {
 // 🔽 Dropdown filtrelerini doldur
 function filtreleriDoldur() {
   const acenteSelect = document.getElementById("acenteFiltre");
-  const aySelect = document.getElementById("ayFiltre"); // 👈 yeni dropdown
+  const aySelect = document.getElementById("ayFiltre");
 
   const acenteler = [...new Set(tumPoliceler.map(p => p.kimin).filter(Boolean))];
   const aylar = [...new Set(tumPoliceler.map(p => new Date(p.bitis).toISOString().slice(0, 7)))];
@@ -66,6 +66,7 @@ function grafikleriCiz() {
   veriler.forEach(p => {
     turler[p.tur] = (turler[p.tur] || 0) + 1;
   });
+
   if (turChart) turChart.destroy();
   turChart = new Chart(document.getElementById("turGrafik"), {
     type: "bar",
@@ -84,8 +85,10 @@ function grafikleriCiz() {
   const aylikPrim = {};
   veriler.forEach(p => {
     const ay = new Date(p.bitis).toISOString().slice(0, 7);
-    aylikPrim[ay] = (aylikPrim[ay] || 0) + Number(p.prim || 0);
+    const prim = p.iptalDurumu ? Number(p.kazanilanPrim || 0) : Number(p.prim || 0);
+    aylikPrim[ay] = (aylikPrim[ay] || 0) + prim;
   });
+
   if (aylikPrimChart) aylikPrimChart.destroy();
   aylikPrimChart = new Chart(document.getElementById("aylikPrimGrafik"), {
     type: "line",
@@ -106,9 +109,11 @@ function grafikleriCiz() {
   const aylikKomisyon = {};
   veriler.forEach(p => {
     const ay = new Date(p.bitis).toISOString().slice(0, 7);
-    const komisyon = (Number(p.prim || 0) * Number(p.disKomisyon || 0)) / 100;
+    const prim = p.iptalDurumu ? Number(p.kazanilanPrim || 0) : Number(p.prim || 0);
+    const komisyon = (prim * Number(p.disKomisyon || 0)) / 100;
     aylikKomisyon[ay] = (aylikKomisyon[ay] || 0) + komisyon;
   });
+
   if (aylikKomisyonChart) aylikKomisyonChart.destroy();
   aylikKomisyonChart = new Chart(document.getElementById("aylikKomisyonGrafik"), {
     type: "line",
@@ -129,9 +134,11 @@ function grafikleriCiz() {
   const komisyonlar = {};
   veriler.forEach(p => {
     const kimin = p.kimin;
-    const kom = (Number(p.prim || 0) * Number(p.disKomisyon || 0)) / 100;
+    const prim = p.iptalDurumu ? Number(p.kazanilanPrim || 0) : Number(p.prim || 0);
+    const kom = (prim * Number(p.disKomisyon || 0)) / 100;
     komisyonlar[kimin] = (komisyonlar[kimin] || 0) + kom;
   });
+
   if (kiminPieChart) kiminPieChart.destroy();
   kiminPieChart = new Chart(document.getElementById("kiminKomisyonPie"), {
     type: "pie",

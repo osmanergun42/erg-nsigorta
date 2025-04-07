@@ -28,7 +28,11 @@ document.addEventListener("DOMContentLoaded", () => {
             <td>${telefon}</td>
             <td>${email}</td>
             <td>${tcKimlik}</td>
-            <td><button onclick="musteriSil(${index})">❌</button></td>
+            <td>
+              <button onclick="musteriDuzenle('${veri.id}')">✏️</button>
+              <button onclick="silMusteri('${veri.id}')">❌</button>
+            </td>
+
           `;
           tabloBody.appendChild(tr);
         }
@@ -61,6 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
         musteriSelect2Guncelle();
       }
     };
+    
   
     form.addEventListener("submit", (e) => {
       e.preventDefault();

@@ -1,9 +1,9 @@
-// js/muhasebe.js
-
 import { db } from "./firebase.js";
 import {
   collection,
-  getDocs
+  getDocs,
+  updateDoc,
+  doc
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 import * as XLSX from "https://cdn.jsdelivr.net/npm/xlsx/xlsx.mjs";
@@ -20,22 +20,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let policeListesi = [];
 
-  // Firestore'dan poliçeleri çek
   async function poliseleriGetir() {
     const querySnapshot = await getDocs(collection(db, "policeler"));
     policeListesi = [];
-    querySnapshot.forEach(doc => {
-      const veri = doc.data();
-      if (!veri.iptalDurumu) {
-        policeListesi.push(veri);
-      }
+    querySnapshot.forEach(docSnap => {
+      const veri = docSnap.data();
+      policeListesi.push({ ...veri, id: docSnap.id });
     });
 
-    console.log("Firestore'dan çekilen veri sayısı:", policeListesi.length);
-    tabloyuGuncelle(policeListesi); // İlk tabloyu göster
+    tabloyuGuncelle(policeListesi);
   }
 
-  // Tabloyu yazdır
   function tabloyuGuncelle(veriler) {
     tabloBody.innerHTML = "";
 
@@ -56,8 +51,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       toplamDisKomisyon += disKomisyon;
 
       const tr = document.createElement("tr");
+
+      let iptalEtiketi = "";
+      let iptalButonHTML = "";
+
+      if (p.iptalDurumu) {
+        tr.classList.add("iptal-poliçe");
+        iptalEtiketi = `<span style="color:red; font-weight:bold;">❌ İptal Edildi</span><br>`;
+        iptalButonHTML = `<button data-id="${p.id}" class="iptalKaldirBtn">İptali Geri Al</button>`;
+      }
+
       tr.innerHTML = `
-        <td>${p.musteri || "-"}</td>
+        <td>${iptalEtiketi}${p.musteri || "-"}<br>${iptalButonHTML}</td>
         <td>${p.tur || "-"}</td>
         <td>${p.baslangic || "-"}</td>
         <td>${p.bitis || "-"}</td>
@@ -67,21 +72,43 @@ document.addEventListener("DOMContentLoaded", async () => {
         <td>${p.dis || "-"}</td>
         <td>${disKomisyon.toFixed(2)} ₺</td>
       `;
+
       tabloBody.appendChild(tr);
     });
 
     toplamPrimTd.textContent = `₺${toplamPrim.toFixed(2)}`;
     toplamKiminTd.textContent = `₺${toplamKiminKomisyon.toFixed(2)}`;
     toplamDisTd.textContent = `₺${toplamDisKomisyon.toFixed(2)}`;
+
+    document.querySelectorAll(".iptalKaldirBtn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        const veri = policeListesi.find(p => p.id === id);
+        if (!veri) return;
+
+        if (!confirm("Bu poliçenin iptalini geri almak istiyor musunuz?")) return;
+
+        await updateDoc(doc(db, "policeler", id), {
+          iptalDurumu: false,
+          iptalTarihi: "",
+          iptalNotu: "",
+          kiminKesinti: 0,
+          disKesinti: 0,
+          kazanilanPrim: 0,
+          prim: veri.orijinalPrim || veri.prim,
+          orijinalPrim: ""
+        });
+
+        alert("✅ İptal durumu kaldırıldı ve prim geri yüklendi!");
+        poliseleriGetir();
+      });
+    });
   }
 
-  // 🔍 Filtrele butonu
   filtreleBtn?.addEventListener("click", () => {
     const kimin = filtreInput.value.trim().toLowerCase();
     const dis = disFiltreInput.value.trim().toLowerCase();
-    const ay = ayInput.value; // 2025-01 gibi gelir
-
-    console.log("Filtre parametreleri:", { kimin, dis, ay });
+    const ay = ayInput.value;
 
     const filtreli = policeListesi.filter(p => {
       const kiminUygun = !kimin || p.kimin?.toLowerCase().includes(kimin);
@@ -90,17 +117,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       return kiminUygun && disUygun && ayUygun;
     });
 
-    console.log("Filtrelenmiş veri sayısı:", filtreli.length);
     tabloyuGuncelle(filtreli);
   });
 
-  // Excel'e aktar
   document.getElementById("excelAktar").addEventListener("click", () => {
     const tablo = document.getElementById("muhasebeTablosu");
     const wb = XLSX.utils.table_to_book(tablo, { sheet: "Muhasebe" });
     XLSX.writeFile(wb, "muhasebe_raporu.xlsx");
   });
 
-  // Verileri al
   poliseleriGetir();
 });

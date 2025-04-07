@@ -15,9 +15,7 @@ async function verileriGetir() {
   tumPoliceler = [];
   querySnapshot.forEach(doc => {
     const veri = doc.data();
-    if (!veri.iptalDurumu) {
-      tumPoliceler.push(veri);
-    }
+    tumPoliceler.push(veri);
   });
 
   acenteDropdownDoldur();
@@ -56,14 +54,16 @@ function tabloyuGoster(veriler) {
 
   veriler.forEach(p => {
     const tr = document.createElement("tr");
+    tr.style.backgroundColor = p.iptalDurumu ? "#ffe6e6" : "white";
+
     tr.innerHTML = `
       <td>${p.musteri || "-"}</td>
       <td>${p.plaka || "-"}</td>
       <td>${p.tescilNo || "-"}</td>
       <td>${p.tur || "-"}</td>
       <td>${p.baslangic || "-"}</td>
-      <td>${p.bitis || "-"}</td>
-      <td>${p.prim || "0"} ₺</td>
+      <td>${p.iptalDurumu ? p.iptalTarihi : p.bitis || "-"}</td>
+      <td>${p.iptalDurumu ? p.kazanilanPrim?.toFixed(2) : Number(p.prim || 0).toFixed(2)} ₺</td>
       <td>${p.kimin || "-"}</td>
       <td>${p.dis || "-"}</td>
     `;
@@ -77,14 +77,15 @@ function tabloyuGoster(veriler) {
 // Excel'e aktar
 document.getElementById("excelFiltreAktarBtn")?.addEventListener("click", () => {
   const veri = (window.sonFiltreliVeri || []).map(p => {
+    const netPrim = p.iptalDurumu ? Number(p.kazanilanPrim || 0) : Number(p.prim || 0);
     return {
       "Müşteri": p.musteri,
       "Plaka": p.plaka,
       "Tescil No": p.tescilNo,
       "Tür": p.tur,
       "Başlangıç": p.baslangic,
-      "Bitiş": p.bitis,
-      "Prim (₺)": Number(p.prim).toFixed(2),
+      "Bitiş": p.iptalDurumu ? p.iptalTarihi : p.bitis,
+      "Prim (₺)": netPrim.toFixed(2),
       "Kimin Müşterisi": p.kimin,
       "Dış Acente": p.dis
     };
@@ -99,6 +100,7 @@ document.getElementById("excelFiltreAktarBtn")?.addEventListener("click", () => 
 function grafikleriCiz(veriSeti = tumPoliceler) {
   const veriler = veriSeti;
 
+  // Poliçe Türü Grafiği
   const turler = {};
   veriler.forEach(p => {
     turler[p.tur] = (turler[p.tur] || 0) + 1;
@@ -116,10 +118,12 @@ function grafikleriCiz(veriSeti = tumPoliceler) {
     }
   });
 
+  // Aylık Prim
   const aylikPrim = {};
   veriler.forEach(p => {
     const ay = (p.bitis || "").slice(0, 7);
-    aylikPrim[ay] = (aylikPrim[ay] || 0) + Number(p.prim || 0);
+    const netPrim = p.iptalDurumu ? Number(p.kazanilanPrim || 0) : Number(p.prim || 0);
+    aylikPrim[ay] = (aylikPrim[ay] || 0) + netPrim;
   });
   if (aylikPrimChart) aylikPrimChart.destroy();
   aylikPrimChart = new Chart(document.getElementById("aylikPrimGrafik"), {
@@ -137,10 +141,12 @@ function grafikleriCiz(veriSeti = tumPoliceler) {
     }
   });
 
+  // Aylık Komisyon
   const aylikKomisyon = {};
   veriler.forEach(p => {
     const ay = (p.bitis || "").slice(0, 7);
-    const komisyon = (Number(p.prim || 0) * ((Number(p.disKomisyon) || 0) + (Number(p.kiminKomisyon) || 0))) / 100;
+    const netPrim = p.iptalDurumu ? Number(p.kazanilanPrim || 0) : Number(p.prim || 0);
+    const komisyon = (netPrim * ((Number(p.disKomisyon) || 0) + (Number(p.kiminKomisyon) || 0))) / 100;
     aylikKomisyon[ay] = (aylikKomisyon[ay] || 0) + komisyon;
   });
   if (aylikKomisyonChart) aylikKomisyonChart.destroy();
@@ -159,10 +165,12 @@ function grafikleriCiz(veriSeti = tumPoliceler) {
     }
   });
 
+  // Kimin Komisyon Pie
   const komisyonlar = {};
   veriler.forEach(p => {
     const kimin = p.kimin;
-    const kom = (Number(p.prim || 0) * Number(p.kiminKomisyon || 0)) / 100;
+    const netPrim = p.iptalDurumu ? Number(p.kazanilanPrim || 0) : Number(p.prim || 0);
+    const kom = (netPrim * Number(p.kiminKomisyon || 0)) / 100;
     komisyonlar[kimin] = (komisyonlar[kimin] || 0) + kom;
   });
   if (kiminPieChart) kiminPieChart.destroy();

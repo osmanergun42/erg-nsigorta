@@ -21,12 +21,15 @@
     .autocomplete-suggestions div:hover {
       background-color: #f0f0f0;
     }
+    .iptal-poliçe {
+      background-color: #ffcccc !important;
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>🔍 Arama Sonucu</h1>
-    <a href="anasayfa.html">← Anasayfa</a> 
+    <a href="anasayfa.html">← Anasayfa</a>
   </header>
 
   <main>
@@ -75,13 +78,9 @@
   </div>
 
   <script type="module">
-    import { db, getDataByMusteriAdi, getDataByPlaka } from "./js/firebase.js";
+    import { db } from "./firebase.js";
     import {
-      collection,
-      getDocs,
-      deleteDoc,
-      doc,
-      updateDoc
+      collection, getDocs, deleteDoc, doc, updateDoc
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const aramaInput = document.getElementById("canliAramaInput");
@@ -105,37 +104,39 @@
       filtrele(ilkKelime);
     }
 
-    async function filtrele(kelime = "") {
+    function filtrele(kelime = "") {
       const filtre = kelime?.toLocaleLowerCase("tr-TR").trim();
       tablo.innerHTML = "";
       mesaj.textContent = "";
 
-      let poliEslesenler = [];
-      let musteriEslesenler = [];
+      const poliEslesenler = tumPoliceler.filter(p =>
+        !filtre ||
+        p.musteri?.toLocaleLowerCase("tr-TR").includes(filtre) ||
+        p.tur?.toLocaleLowerCase("tr-TR").includes(filtre) ||
+        p.plaka?.toLocaleLowerCase("tr-TR").includes(filtre) ||
+        p.tescilNo?.toLocaleLowerCase("tr-TR").includes(filtre)
+      );
 
-      if (filtre) {
-        const poliByMusteriAdi = await getDataByMusteriAdi(filtre);
-        const poliByPlaka = await getDataByPlaka(filtre);
-        poliEslesenler = [...poliByMusteriAdi, ...poliByPlaka];
-
-        musteriEslesenler = tumMusteriler.filter(m => 
-          m.adSoyad?.toLocaleLowerCase("tr-TR").includes(filtre)
-        );
-      } else {
-        poliEslesenler = tumPoliceler;
-        musteriEslesenler = tumMusteriler;
-      }
+      const musteriEslesenler = tumMusteriler.filter(m =>
+        m.adSoyad?.toLocaleLowerCase("tr-TR").includes(filtre)
+      );
 
       if (poliEslesenler.length === 0 && musteriEslesenler.length === 0) {
         mesaj.textContent = "Sonuç bulunamadı.";
         return;
       }
 
-      // Poliçeli kayıtları yaz
       poliEslesenler.sort((a, b) => new Date(a.bitis) - new Date(b.bitis)).forEach(p => {
         const tr = document.createElement("tr");
+
+        let iptalEtiketi = "";
+        if (p.iptalDurumu === true) {
+          tr.classList.add("iptal-poliçe");
+          iptalEtiketi = `<span style="color: red; font-weight: bold;">❌ İptal Edildi</span><br>`;
+        }
+
         tr.innerHTML = `
-          <td>${p.musteri || "-"}</td>
+          <td>${iptalEtiketi}${p.musteri || "-"}</td>
           <td>${p.plaka || "-"}</td>
           <td>${p.tescilNo || "-"}</td>
           <td>${p.tur || "-"}</td>
@@ -150,7 +151,6 @@
         tablo.appendChild(tr);
       });
 
-      // Poliçesi olmayan müşteriler
       musteriEslesenler.forEach(m => {
         const zatenVar = poliEslesenler.some(p => p.musteri === m.adSoyad);
         if (!zatenVar) {
