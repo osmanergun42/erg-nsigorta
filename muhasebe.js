@@ -105,6 +105,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // ✅ GÜNCELLENEN FİLTRELEME
   filtreleBtn?.addEventListener("click", () => {
     const kimin = filtreInput.value.trim().toLowerCase();
     const dis = disFiltreInput.value.trim().toLowerCase();
@@ -113,7 +114,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const filtreli = policeListesi.filter(p => {
       const kiminUygun = !kimin || p.kimin?.toLowerCase().includes(kimin);
       const disUygun = !dis || p.dis?.toLowerCase().includes(dis);
-      const ayUygun = !ay || (p.bitis && p.bitis.startsWith(ay));
+      const baslangicAy = (p.baslangic || "").slice(0, 7);
+      const ayUygun = !ay || baslangicAy === ay;
       return kiminUygun && disUygun && ayUygun;
     });
 
