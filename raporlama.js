@@ -27,7 +27,7 @@ function filtreleriDoldur() {
   const aySelect = document.getElementById("ayFiltre");
 
   const acenteler = [...new Set(tumPoliceler.map(p => p.kimin).filter(Boolean))];
-  const aylar = [...new Set(tumPoliceler.map(p => new Date(p.bitis).toISOString().slice(0, 7)))];
+  const aylar = [...new Set(tumPoliceler.map(p => (p.baslangic || "").slice(0, 7)).filter(Boolean))];
 
   acenteSelect.innerHTML = `<option value="">Tümü</option>`;
   aySelect.innerHTML = `<option value="">Tümü</option>`;
@@ -57,7 +57,8 @@ function grafikleriCiz() {
 
   const veriler = tumPoliceler.filter(p => {
     const kiminEslesme = !acente || (p.kimin?.toLowerCase() === acente.toLowerCase());
-    const ayEslesme = !ay || new Date(p.bitis).toISOString().slice(0, 7) === ay;
+    const baslangicAy = (p.baslangic || "").slice(0, 7);
+    const ayEslesme = !ay || baslangicAy === ay;
     return kiminEslesme && ayEslesme;
   });
 
@@ -84,7 +85,7 @@ function grafikleriCiz() {
   // Aylık prim grafiği
   const aylikPrim = {};
   veriler.forEach(p => {
-    const ay = new Date(p.bitis).toISOString().slice(0, 7);
+    const ay = (p.baslangic || "").slice(0, 7);
     const prim = p.iptalDurumu ? Number(p.kazanilanPrim || 0) : Number(p.prim || 0);
     aylikPrim[ay] = (aylikPrim[ay] || 0) + prim;
   });
@@ -108,7 +109,7 @@ function grafikleriCiz() {
   // Aylık komisyon grafiği
   const aylikKomisyon = {};
   veriler.forEach(p => {
-    const ay = new Date(p.bitis).toISOString().slice(0, 7);
+    const ay = (p.baslangic || "").slice(0, 7);
     const prim = p.iptalDurumu ? Number(p.kazanilanPrim || 0) : Number(p.prim || 0);
     const komisyon = (prim * Number(p.disKomisyon || 0)) / 100;
     aylikKomisyon[ay] = (aylikKomisyon[ay] || 0) + komisyon;
