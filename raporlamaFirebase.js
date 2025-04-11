@@ -22,6 +22,7 @@ async function verileriGetir() {
   grafikleriCiz();
 }
 
+// Dropdown doldur
 function acenteDropdownDoldur() {
   const select = document.getElementById("acenteFiltre");
   const acenteler = [...new Set(tumPoliceler.map(p => p.kimin).filter(Boolean))];
@@ -34,13 +35,15 @@ function acenteDropdownDoldur() {
   });
 }
 
+// ✅ Başlangıç tarihine göre filtrele
 document.getElementById("filtreleBtn")?.addEventListener("click", () => {
   const acente = document.getElementById("acenteFiltre").value;
-  const ay = document.getElementById("ayFiltre").value; // 2025-01 gibi gelir
+  const ay = document.getElementById("ayFiltre").value; // Örn: "2025-02"
 
   const veriler = tumPoliceler.filter(p => {
     const kiminUygun = !acente || p.kimin === acente;
-    const ayUygun = !ay || (p.bitis && p.bitis.startsWith(ay));
+    const baslangicAy = (p.baslangic || "").slice(0, 7);
+    const ayUygun = !ay || baslangicAy === ay;
     return kiminUygun && ayUygun;
   });
 
@@ -70,7 +73,6 @@ function tabloyuGoster(veriler) {
     tablo.appendChild(tr);
   });
 
-  // Excel için veriyi cachele
   window.sonFiltreliVeri = veriler;
 }
 
@@ -97,10 +99,11 @@ document.getElementById("excelFiltreAktarBtn")?.addEventListener("click", () => 
   XLSX.writeFile(wb, "filtreli_policeler.xlsx");
 });
 
+// Grafikler
 function grafikleriCiz(veriSeti = tumPoliceler) {
   const veriler = veriSeti;
 
-  // Poliçe Türü Grafiği
+  // Tür grafiği
   const turler = {};
   veriler.forEach(p => {
     turler[p.tur] = (turler[p.tur] || 0) + 1;
@@ -118,10 +121,10 @@ function grafikleriCiz(veriSeti = tumPoliceler) {
     }
   });
 
-  // Aylık Prim
+  // Aylık prim (başlangıç ayına göre gruplanır)
   const aylikPrim = {};
   veriler.forEach(p => {
-    const ay = (p.bitis || "").slice(0, 7);
+    const ay = (p.baslangic || "").slice(0, 7);
     const netPrim = p.iptalDurumu ? Number(p.kazanilanPrim || 0) : Number(p.prim || 0);
     aylikPrim[ay] = (aylikPrim[ay] || 0) + netPrim;
   });
@@ -141,10 +144,10 @@ function grafikleriCiz(veriSeti = tumPoliceler) {
     }
   });
 
-  // Aylık Komisyon
+  // Aylık komisyon
   const aylikKomisyon = {};
   veriler.forEach(p => {
-    const ay = (p.bitis || "").slice(0, 7);
+    const ay = (p.baslangic || "").slice(0, 7);
     const netPrim = p.iptalDurumu ? Number(p.kazanilanPrim || 0) : Number(p.prim || 0);
     const komisyon = (netPrim * ((Number(p.disKomisyon) || 0) + (Number(p.kiminKomisyon) || 0))) / 100;
     aylikKomisyon[ay] = (aylikKomisyon[ay] || 0) + komisyon;
